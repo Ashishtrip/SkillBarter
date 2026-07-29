@@ -1,0 +1,349 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-secondary-50 text-secondary-900;
+  }
+
+  /* Responsive typography using Manrope for headings */
+  h1 {
+    font-family: 'Manrope', system-ui, sans-serif;
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight;
+  }
+
+  h2 {
+    font-family: 'Manrope', system-ui, sans-serif;
+    @apply text-xl sm:text-2xl md:text-3xl font-bold tracking-tight;
+  }
+
+  h3 {
+    font-family: 'Manrope', system-ui, sans-serif;
+    @apply text-lg sm:text-xl font-semibold;
+  }
+
+  h4 {
+    font-family: 'Manrope', system-ui, sans-serif;
+    @apply text-base sm:text-lg font-semibold;
+  }
+
+  p {
+    @apply text-sm sm:text-base leading-relaxed text-secondary-500;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #CCCCCC;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #999999;
+  }
+}
+
+@layer components {
+  /* ─── Buttons ─── */
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-5 rounded-full transition-all duration-200 text-sm active:scale-[0.98] shadow-sm hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-50 hover:bg-secondary-200 text-secondary-900 font-semibold py-2.5 px-5 rounded-full transition-all duration-200 text-sm border border-secondary-200 active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-semibold py-2 px-5 rounded-full transition-all duration-200 text-sm active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply text-secondary-500 hover:text-secondary-900 hover:bg-secondary-100 font-medium py-2 px-3 rounded-lg transition-colors duration-200 text-sm;
+  }
+
+  .btn-danger {
+    @apply bg-error-500 hover:bg-error-600 text-white font-semibold py-2.5 px-5 rounded-full transition-all duration-200 text-sm active:scale-[0.98];
+  }
+
+  .btn-icon {
+    @apply p-2 hover:bg-secondary-100 rounded-full transition-colors duration-200 text-secondary-500 hover:text-secondary-900;
+  }
+
+  .btn-accent {
+    @apply bg-accent-500 hover:bg-accent-600 text-white font-semibold py-2.5 px-5 rounded-full transition-all duration-200 text-sm active:scale-[0.98];
+  }
+
+  .btn-icon-circle {
+    @apply w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 text-white shadow-md hover:shadow-lg;
+  }
+
+  .btn-icon-circle-primary {
+    @apply btn-icon-circle bg-primary-600 hover:bg-primary-700;
+  }
+
+  .btn-icon-circle-secondary {
+    @apply btn-icon-circle bg-secondary-100 text-secondary-900 hover:bg-secondary-200;
+  }
+
+  /* ─── Input Fields ─── */
+  .input-field {
+    @apply w-full px-4 py-2.5 text-sm bg-white border border-secondary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent transition-all duration-200 placeholder:text-secondary-400;
+  }
+
+  .input-field:disabled {
+    @apply bg-secondary-50 text-secondary-400 cursor-not-allowed;
+  }
+
+  /* ─── Cards ─── */
+  .card {
+    @apply bg-white rounded-card shadow-card border border-secondary-200/60 p-5 sm:p-6 transition-all duration-200 hover:shadow-card-hover;
+  }
+
+  .card-compact {
+    @apply bg-white rounded-lg shadow-card border border-secondary-200/60 p-4;
+  }
+
+  .card-flat {
+    @apply bg-white rounded-card border border-secondary-200 p-5 sm:p-6;
+  }
+
+  .card-interactive {
+    @apply bg-white rounded-card shadow-card border border-secondary-200/60 p-5 sm:p-6 transition-all duration-200 hover:shadow-card-hover cursor-pointer;
+  }
+
+  /* ─── LinkedIn-style Section Card ─── */
+  .section-card {
+    @apply bg-white rounded-card shadow-card border border-secondary-200/60 overflow-hidden;
+  }
+
+  .section-card-header {
+    @apply px-5 sm:px-6 py-4 flex items-center justify-between border-b border-secondary-200/60;
+  }
+
+  .section-card-body {
+    @apply px-5 sm:px-6 py-4;
+  }
+
+  /* ─── Badges ─── */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary-50 text-primary-700;
+  }
+
+  .badge-accent {
+    @apply badge bg-accent-50 text-accent-700;
+  }
+
+  .badge-success {
+    @apply badge bg-success-50 text-success-600;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning-50 text-warning-600;
+  }
+
+  .badge-error {
+    @apply badge bg-error-50 text-error-500;
+  }
+
+  /* ─── Responsive Grid Layouts ─── */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5;
+  }
+
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5;
+  }
+
+  /* ─── Avatar ─── */
+  .avatar {
+    @apply rounded-full bg-primary-100 flex items-center justify-center font-heading font-bold text-primary-700;
+  }
+
+  .avatar-sm {
+    @apply avatar w-8 h-8 text-xs;
+  }
+
+  .avatar-md {
+    @apply avatar w-10 h-10 text-sm;
+  }
+
+  .avatar-lg {
+    @apply avatar w-14 h-14 text-lg;
+  }
+
+  .avatar-xl {
+    @apply avatar w-20 h-20 text-2xl;
+  }
+
+  /* ─── Stat Card (Byjus-style) ─── */
+  .stat-card {
+    @apply bg-white rounded-card shadow-card border border-secondary-200/60 p-5 relative overflow-hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    @apply absolute top-0 left-0 w-1 h-full bg-primary-600;
+  }
+
+  /* ─── Profile Card ─── */
+  .profile-card {
+    @apply bg-white rounded-card shadow-card border border-secondary-200/60 p-5 sm:p-6 transition-all duration-200 hover:shadow-card-hover flex flex-col items-center text-center;
+  }
+
+  /* ─── Feed Post Card (Reddit-style) ─── */
+  .feed-post {
+    @apply bg-white rounded-card shadow-card border border-secondary-200/60 p-4 sm:p-5 transition-all duration-200 hover:shadow-card-hover;
+  }
+
+  .feed-post-header {
+    @apply flex items-center gap-3 mb-4;
+  }
+
+  .feed-post-author {
+    @apply font-semibold text-sm text-secondary-900;
+  }
+
+  .feed-post-meta {
+    @apply text-xs text-secondary-500;
+  }
+
+  .feed-post-content {
+    @apply text-sm text-secondary-700 mb-4;
+  }
+
+  .feed-post-footer {
+    @apply flex items-center gap-4 pt-3 border-t border-secondary-200/60;
+  }
+
+  /* ─── Tab Styles ─── */
+  .tabs {
+    @apply flex gap-0 border-b border-secondary-200/60;
+  }
+
+  .tab {
+    @apply px-4 py-3 text-sm font-medium text-secondary-600 border-b-2 border-transparent hover:text-secondary-900 transition-colors cursor-pointer;
+  }
+
+  .tab-active {
+    @apply border-b-2 border-primary-600 text-primary-600;
+  }
+
+  /* ─── Reddit-style Vote Button ─── */
+  .vote-btn {
+    @apply p-1 rounded hover:bg-secondary-100 transition-colors text-secondary-400 hover:text-accent-500;
+  }
+
+  .vote-btn-active {
+    @apply p-1 rounded text-accent-500;
+  }
+
+  /* ─── Google Meet-style Control ─── */
+  .meet-control {
+    @apply p-4 rounded-full transition-all duration-200 text-white;
+  }
+
+  .meet-control-default {
+    @apply meet-control bg-meet-surface hover:bg-meet-hover;
+  }
+
+  .meet-control-danger {
+    @apply meet-control bg-error-500 hover:bg-error-600;
+  }
+
+  /* ─── Loading Skeleton ─── */
+  .skeleton {
+    @apply bg-secondary-200 rounded-lg animate-pulse;
+  }
+
+  /* ─── Divider ─── */
+  .divider {
+    @apply border-t border-secondary-200/60;
+  }
+
+  /* ─── Label ─── */
+  .label {
+    @apply text-xs font-semibold uppercase tracking-wider text-secondary-400;
+  }
+
+  /* ─── Responsive containers ─── */
+  .container-responsive {
+    @apply px-4 sm:px-6 md:px-8 lg:px-0;
+  }
+
+  .section-padding {
+    @apply py-8 sm:py-12 md:py-16;
+  }
+}
+
+/* ─── Responsive utilities ─── */
+@media (max-width: 640px) {
+  .hide-on-mobile {
+    display: none;
+  }
+
+  .mobile-full-width {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .hide-on-tablet {
+    display: none;
+  }
+}
+
+@media (min-width: 1025px) {
+  .hide-on-desktop {
+    display: none;
+  }
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Print styles ─── */
+@media print {
+  .no-print {
+    display: none;
+  }
+
+  body {
+    @apply bg-white;
+  }
+
+  .card {
+    @apply break-inside-avoid shadow-none border;
+  }
+}

@@ -1,0 +1,79 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e5]:
+      - link "S SkillBarter" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: S
+        - generic [ref=e9]: SkillBarter
+      - generic [ref=e10]:
+        - link "Search" [ref=e11] [cursor=pointer]:
+          - /url: /search
+          - img [ref=e12]
+          - generic [ref=e15]: Search
+        - link "Skills" [ref=e16] [cursor=pointer]:
+          - /url: /skills
+          - img [ref=e17]
+          - generic [ref=e18]: Skills
+  - main [ref=e21]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e26]: S
+        - heading "Create your account" [level=2] [ref=e27]
+        - paragraph [ref=e28]:
+          - text: Or
+          - link "sign in to your existing account" [ref=e29] [cursor=pointer]:
+            - /url: /auth/signin
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - generic [ref=e33]: Full Name
+            - generic [ref=e34]:
+              - generic:
+                - img
+              - textbox "Full Name" [ref=e35]:
+                - /placeholder: Enter your full name
+                - text: testuser-7ckc9
+          - generic [ref=e36]:
+            - generic [ref=e37]: Email address
+            - generic [ref=e38]:
+              - generic:
+                - img
+              - textbox "Email address" [ref=e39]:
+                - /placeholder: Enter your email
+                - text: testuser-7ckc9@example.com
+          - generic [ref=e40]:
+            - generic [ref=e41]: Password
+            - generic [ref=e42]:
+              - generic:
+                - img
+              - textbox "Password" [ref=e43]:
+                - /placeholder: Create a password
+                - text: password123
+              - button [ref=e44] [cursor=pointer]:
+                - img [ref=e45]
+          - generic [ref=e48]:
+            - generic [ref=e49]: Confirm Password
+            - generic [ref=e50]:
+              - generic:
+                - img
+              - textbox "Confirm Password" [active] [ref=e51]:
+                - /placeholder: Confirm your password
+              - button [ref=e52] [cursor=pointer]:
+                - img [ref=e53]
+          - generic [ref=e56]:
+            - generic [ref=e57]: Bio (Optional)
+            - textbox "Bio (Optional)" [ref=e58]:
+              - /placeholder: Tell us about yourself and your interests...
+            - paragraph [ref=e59]: 0/500 characters
+          - generic [ref=e60]:
+            - generic [ref=e61]: Location (Optional)
+            - generic [ref=e62]:
+              - generic:
+                - img
+              - textbox "Location (Optional)" [ref=e63]:
+                - /placeholder: City, Country
+        - button "Create account" [ref=e65] [cursor=pointer]
+```

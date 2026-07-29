@@ -1,0 +1,87 @@
+name: Playwright E2E
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json','**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json','**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Build Next app
+        run: npm run build
+
+      - name: Start Next server
+        run: |
+          nohup npm start > next-start.log 2>&1 &
+          # wait for http server to be ready
+          for i in {1..60}; do
+            if curl -sS http://localhost:3000/ >/dev/null; then
+              echo "server is up"; break;
+            fi
+            echo "waiting for server..."; sleep 1;
+          done
+
+      - name: Run Playwright tests
+        run: npx playwright test --config=playwright.config.ts --project=${{ matrix.browser }} --reporter=html
+
+      - name: Upload Playwright HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
+  aggregate-reports:
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: reports
+
+      - name: Aggregate reports
+        run: |
+          mkdir -p reports/all
+          cp -r reports/* reports/all/ || true
+
+      - name: Upload combined Playwright report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-all
+          path: reports/all

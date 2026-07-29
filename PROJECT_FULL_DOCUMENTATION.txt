@@ -1,0 +1,209 @@
+Skill Barter — Project Full Documentation
+
+Generated: 2026-02-18
+
+This file contains a comprehensive, deep-dive description of the Skill Barter project: architecture, files, functions, key flows, known issues and fixes, state management, USPs, security notes, testing guidance, performance recommendations, and developer checklists. Use this as a single reference document for the codebase.
+
+---
+
+Project summary
+
+- Name: Skill Barter
+- Type: Next.js (App Router) + TypeScript web app
+- Purpose: Peer-to-peer skill barter (users offer skills to teach and list skills they want to learn); exchanges formed between users, with chat and lifecycle (pending → active → completed)
+- Backend: Node.js + Next.js API routes + Mongoose (MongoDB)
+- Auth: NextAuth (OAuth providers: Google, Apple + credentials)
+- UI: React components, Tailwind CSS
+- Dev tooling: Jest (unit), Playwright (e2e), Dockerfile for container builds
+
+High-level architecture
+
+- Frontend pages are Next App Router server/client components. Session is retrieved server-side in layout and passed to SessionProvider as initialSession to avoid hydration flicker.
+- API routes under src/app/api handle CRUD: users, skills, exchanges, search, uploads, db-seed/status.
+- Mongoose models live under src/models; connectDB helper in src/lib handles Mongo connection.
+- Client components (Navbar, Header, Profile forms, Chat, SkillsBrowser, Search result cards) handle interactions and call API routes.
+- State: local React state (useState/useEffect). Some pages use polling for real-time-ish behavior (messages every few seconds). API response format standardized to { data, error }.
+
+Key folders & files (map)
+
+- src/app
+  - layout.tsx — top-level layout; seeds session using getServerSession and passes to Providers
+  - page.tsx — home/landing
+  - auth/
+    - signin/page.tsx — sign-in page with Google/Apple buttons and OAuth flow
+  - dashboard/page.tsx — user dashboard (stats, recent exchanges, quick actions)
+  - profile/page.tsx — user profile editor and display (skills, certificates, projects, education, work)
+  - search/page.tsx — search partners (user cards, Start Exchange modal)
+  - exchanges/
+    - page.tsx — exchanges list
+    - [id]/ (exchange detail) — messages, status actions
+  - api/
+    - auth/[...nextauth]/route.ts — NextAuth handler
+    - user/
+      - profile/route.ts — GET/PUT profile (standardized responses)
+      - certificates/route.ts — add/remove certificates
+      - projects/route.ts — add/remove projects
+      - education/route.ts — add/remove education
+      - work-experience/route.ts — add/remove work entries
+    - skills/route.ts — list/create skills, skill CRUD
+    - search/users/route.ts — search users (local DB; uses regex queries; excludes current user)
+    - exchanges/
+      - route.ts — list/create exchanges (uses offeredBy/requestedBy)
+      - [id]/messages/route.ts — GET/POST messages for an exchange
+      - [id]/status/route.ts — change status (accept/complete)
+    - db-status/route.ts — DB health + seed endpoint (dev)
+    - upload/route.ts — file upload handling
+- src/components
+  - Providers.tsx — wrapper that includes SessionProvider with initialSession
+  - Navbar.tsx / MobileNavbar.tsx — navigation components (memoized)
+  - Header.tsx — top header (client/hybrid)
+  - SkillsBrowser.tsx — skills listing, add skill handlers
+  - Chat.tsx — exchange chat UI (fetches messages, sends message, displays times, handles sender object vs id)
+  - SearchResults/UserCard.tsx — card for search results with Start Exchange button
+  - ExchangeCard.tsx — exchange tile (status, actions)
+  - Modals for add/edit (projects, certificates, education, work, exchanges)
+- src/models
+  - User.ts — user schema: name, email, avatar, skillsToTeach: string[], skillsToLearn: string[], githubProfile, linkedinProfile, certificates[], projects[], education[], workExperience[], exchanges[] etc.
+  - Skill.ts — skill schema: name, category, level, owner ref
+  - Exchange.ts — exchange schema: offeredBy, requestedBy, skills: { offered, requested }, status, messages[] (with timestamps)
+  - (Message is subdocument with sender (id or populated user), text, type, createdAt)
+- src/lib
+  - mongodb.ts — connectDB helper (singleton connect)
+  - api-helpers.ts — createApiResponse / createApiErrorResponse used to standardize API responses to { data, error }
+  - auth.ts — NextAuth authOptions (providers, callbacks)
+  - skills-service.ts — helper to create skill + add to user arrays
+  - fetch-helper.ts — unified client fetch wrapper (normalizes responses)
+- public / assets — logos and static files (Google/Apple/GitHub/LinkedIn icons / other imagery)
+- README.md — project brief (can be expanded)
+- Dockerfile — multi-stage node:18-alpine build for production Next.js image
+- tests/ — Jest unit tests, Playwright e2e (if configured)
+
+Important functions & flows (concise)
+
+1. Auth flow
+   - NextAuth configured in src/app/api/auth/[...nextauth]/route.ts (Google/Apple/credentials).
+   - layout.tsx calls getServerSession(authOptions) and passes session into Providers.tsx -> SessionProvider initialSession. This reduces client flicker.
+   - Error sources to watch: NEXTAUTH_URL must match Google console redirect URIs; port mismatches cause OAuth callback errors.
+
+2. Profile flow
+   - GET /api/user/profile returns { data: user }, PUT updates profile.
+   - Profile page uses fetch wrapper to extract result.data and set local state for user.
+   - Skills add/remove endpoints update both Skill collection and user's skillsToTeach/skillsToLearn arrays.
+   - Projects/certificates/education/work endpoints follow same pattern (POST/DELETE) and return standardized responses.
+
+3. Skill/Search flow
+   - POST /api/skills creates a Skill and pushes its id into user's array (teach or learn depending on type).
+   - Search endpoint (src/app/api/search/users/route.ts) performs regex queries and populates skills and basic profile data.
+   - Important: current user is excluded from search results (filter by _id: { $ne: currentUserId }).
+
+4. Exchange lifecycle
+   - POST /api/exchanges: Creates exchange with offeredBy (initiator) and requestedBy (target), status: "pending".
+   - Recipient can accept via PATCH /api/exchanges/[id]/status -> becomes "active".
+   - Either or both users can call status endpoint to mark complete (requires both to agree or system rule you implement).
+   - Exchange detail route returns populated users and skill objects.
+   - Messages: /api/exchanges/[id]/messages supports GET (list) and POST (create); messages stored as subdocs with createdAt timestamp; API returns { data: messages }.
+   - Server-side validation prevents self-exchanges; client also disables Start Exchange when card is your own.
+
+5. Chat functions (Chat.tsx)
+   - fetchMessages(): GET messages; extracts result.data and sets state.
+   - sendMessage(): POST message; expects { data: newMessage } response and appends to messages array.
+   - formatMessageTime(): uses createdAt (or fallback) to render relative time; checks for undefined guard.
+   - Sender handling: message.sender might be an id or populated object — UI uses senderId extraction and sender name display.
+
+6. Dashboard
+   - Aggregates counts: totalSkills is user.skillsToTeach.length (only teach counted as requested).
+   - Tiles are clickable and navigate to the relevant pages; quick actions wired to search/profile/exchanges.
+   - Dashboard refreshes when exchanges change (refreshKey state or re-fetch after status change).
+
+Known issues previously found & fixed (important for state/hydration)
+
+- Hydration flicker due to client-only session fetching → fixed by server seeding session in layout and passing initialSession to SessionProvider.
+- Inconsistent API response formats: some routes returned raw objects while others returned { data, error } — standardized to createApiResponse. Many frontend pages were updated to expect/extract result.data.
+- Skill add endpoint used wrong user array previously → fixed to add to skillsToLearn vs skillsToTeach based on 'type' param.
+- Exchange model/schema mismatch: APIs originally used participants array; code was refactored to use offeredBy/requestedBy. All related routes updated (messages, status, listing).
+- Chat errors:
+  - messages.map is not a function → fixed by extracting result.data array.
+  - timestamp vs createdAt mismatch → standardized to createdAt and types updated.
+  - Rendering sender object directly → fixed to display sender.name or fallback.
+- Search originally used Atlas $search aggregation — replaced with regex queries for local MongoDB compatibility.
+- OAuth callback errors: NEXTAUTH_URL must match Google Console redirect URIs; handled in docs and env.
+
+State management diagnosis
+
+- App uses local React state with many controlled forms; there is no global store (Redux/React Query).
+- Problems arose when API responses had inconsistent shapes, causing components to set wrong state shapes.
+- Some components recreated handlers per render causing extra re-renders; memoization (React.memo/useCallback/useMemo) applied to Navbar/MobileNavbar/handlers to lower churn.
+- Recommendations: adopt SWR or React Query for server state (skills, exchanges, profile). That centralizes caching, optimistic updates, background revalidation and simplifies re-rendering logic.
+
+Unique Selling Points (USPs) & product-level features
+
+- Barter-first model (skill/time exchange vs payments) — reduces friction and builds community.
+- Lightweight profiles with teach/learn lists and exchanges workflow (pending → active → completed).
+- In-app messaging per exchange (contextual chat).
+- Profile enrichment: projects, certificates, GitHub/LinkedIn links, education, work experience.
+- Demo-seed endpoints and local-first setup for easy developer onboarding.
+- OAuth sign-in (Google/Apple) plus credentials sign-up for accessibility.
+- Dockerfile for containerized dev/production builds.
+- Tailwind CSS + Next.js App Router modern stack.
+
+Security & privacy notes
+
+- Passwords must be hashed (NextAuth handles credentials strategy if used; check hashing in user registration code).
+- Admin endpoints must be protected (server-side checks using getServerSession and authorize against session.user.isAdmin).
+- Never expose raw JWTs or sensitive data in API responses. Always return minimal user info (id, name, avatar, public links) unless authorized.
+- Validate inputs (server-side) for all POST/PATCH — file uploads, links, dates.
+- Rate limit auth endpoints (you already had rate-limiter concerns referenced).
+
+Testing & CI
+
+- Unit tests: Jest for core logic (models, services).
+- Integration/e2e: Playwright for flows (auth, create exchange, chat).
+- CI: GitHub Actions suggested (matrix for browsers in Playwright).
+- Add smoke tests that validate: sign-in, create skill, search, start exchange, accept exchange, send message.
+
+Performance & UX improvements to consider (prioritized)
+
+1. Use React Query / SWR for server state (reduces custom polling, centralizes caching).
+2. Real-time messaging via WebSockets / Pusher / Socket.io for instant chat and exchange notifications (replace polling).
+3. Bundle analysis and lazy-load heavy libraries (icons, editor).
+4. Convert header to hybrid SSR / CSR to remove any residual header flicker.
+5. Add accessibility (a11y): keyboard nav, aria labels, semantic HTML.
+6. Add server-side rate limiting and monitoring (e.g., Sentry).
+
+Developer short checklist (what to run locally)
+
+- Set `.env.local` keys:
+  - MONGODB_URI, NEXTAUTH_URL (match dev server), NEXTAUTH_SECRET, GOOGLE_CLIENT_ID/SECRET, APPLE keys if used
+- Start dev server:
+  - npm ci
+  - npm run dev
+- Seed DB (dev endpoint):
+  - curl -X POST http://localhost:3000/api/db-status  (or 3001 depending on dev server port)
+- Run tests:
+  - npm run test
+  - npx playwright test
+
+Where to look first when something breaks
+
+1. Check dev server console for stack trace.
+2. Confirm API response shape using browser Network tab; ensure frontend expects result.data.
+3. Check getServerSession usage: all server-side endpoints must pass authOptions when calling getServerSession.
+4. Verify Mongoose model imports on any route that uses .populate('Skill') — MissingSchemaError points to missing import.
+5. Confirm NEXTAUTH_URL vs Google redirect URIs when OAuth issues occur.
+
+Next immediate recommendations I can implement for you
+
+- Integrate React Query for profile/skills/exchanges (reduces state bugs).
+- Add Playwright smoke tests for session/hydration, exchange flow, chat.
+- Add WebSocket prototype for live messages (or integrate Pusher).
+- Run bundle-analyzer and lazy-load heavy icons/components.
+- Harden API validation (zod or Joi) and add centralized error middleware.
+
+Appendix: Quick notes from recent responsive work
+
+- Global CSS updated with responsive utilities; dashboard, exchanges, profile, and search pages updated to be mobile-first.
+- Added documentation files in repository (RESPONSIVE_DESIGN_*). These contain patterns, testing checklist, and change history.
+
+---
+
+End of document.
