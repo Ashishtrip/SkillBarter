@@ -146,7 +146,8 @@ export function getClientIdentifier(request: Request): string {
   // Try to get IP from headers (works with most proxies)
   const forwarded = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
-  const ip = forwarded?.split(',')[0] || realIp || 'unknown';
+  const cfIp = request.headers.get('cf-connecting-ip');
+  const ip = forwarded?.split(',')[0]?.trim() || realIp || cfIp || '127.0.0.1';
 
   return ip;
 }
@@ -154,31 +155,33 @@ export function getClientIdentifier(request: Request): string {
 /**
  * Common rate limiters
  */
+const isDev = process.env.NODE_ENV === 'development';
+
 export const rateLimiters = {
   // Strict rate limiter for authentication endpoints
   auth: createRateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 requests per 15 minutes
+    max: isDev ? 100 : 10, // 10 requests per 15 minutes in prod
     message: 'Too many authentication attempts. Please try again later.',
   }),
 
   // General API rate limiter
   api: createRateLimiter({
     windowMs: 60 * 1000, // 1 minute
-    max: 60, // 60 requests per minute
+    max: isDev ? 1000 : 200, // 200 requests per minute in prod, 1000 in dev
   }),
 
   // Strict rate limiter for sensitive operations
   strict: createRateLimiter({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // 10 requests per hour
+    max: isDev ? 200 : 20, // 20 requests per hour in prod
     message: 'Too many requests. Please try again later.',
   }),
 
   // Rate limiter for search endpoints
   search: createRateLimiter({
     windowMs: 60 * 1000, // 1 minute
-    max: 30, // 30 requests per minute
+    max: isDev ? 500 : 60, // 60 requests per minute in prod
   }),
 };
 

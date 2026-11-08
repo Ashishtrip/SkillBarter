@@ -28,13 +28,18 @@ export function Chat({ exchangeId, currentUserId }: ChatProps) {
 
   useEffect(() => {
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000);
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchMessages();
+      }
+    }, 4000);
     return () => clearInterval(interval);
   }, [exchangeId]);
 
   const fetchMessages = async () => {
     try {
       const response = await fetch(`/api/exchanges/${exchangeId}/messages`);
+      if (response.status === 429) return;
       if (response.ok) {
         const result = await response.json();
         setMessages(result.data || []);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Bell, Check } from 'lucide-react';
 import { useNotifications } from './NotificationProvider';
 
@@ -15,6 +16,7 @@ interface Notification {
 }
 
 export function NotificationBell() {
+  const { data: session } = useSession();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -22,20 +24,34 @@ export function NotificationBell() {
   const { showNotification } = useNotifications();
 
   useEffect(() => {
+    if (!session) {
+      setIsLoading(false);
+      return;
+    }
+
     fetchNotifications();
     
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Poll for new notifications every 45 seconds when tab is active
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchNotifications();
+      }
+    }, 45000);
+
     return () => clearInterval(interval);
-  }, []);
+  }, [session]);
 
   const fetchNotifications = async () => {
     try {
       const response = await fetch('/api/notifications?limit=10');
+      if (response.status === 429) {
+        // Rate limited; wait for next cycle
+        return;
+      }
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);

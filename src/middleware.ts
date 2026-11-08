@@ -81,10 +81,14 @@ export async function middleware(request: NextRequest) {
 
   // General API rate limiting
   if (path.startsWith('/api/')) {
-    // Exempt some user-driven endpoints from the generic API limiter to
-    // avoid blocking normal interactive usage (adding/removing skills, etc.).
-    // Keep strict limits for other API routes.
-    if (path.startsWith('/api/skills')) {
+    // Exempt background polling endpoints (notifications, chat messages),
+    // developer mode, and interactive endpoints (skills) from generic API limiter.
+    if (
+      process.env.NODE_ENV === 'development' ||
+      path.startsWith('/api/skills') ||
+      path.startsWith('/api/notifications') ||
+      path.includes('/messages')
+    ) {
       return NextResponse.next();
     }
     const result = await rateLimiters.api(clientId, true);
