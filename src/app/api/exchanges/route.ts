@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       return createApiErrorResponse("Unauthorized", 401);
     }
 
-    const { participantId, offeredSkillId, requestedSkillId } =
+    const { participantId, offeredSkillId, requestedSkillId, initialMessage, scheduledFor } =
       await request.json();
 
     if (!participantId || !offeredSkillId || !requestedSkillId) {
@@ -137,7 +137,13 @@ export async function POST(request: NextRequest) {
         requested: requestedSkillId,
       },
       status: "pending",
-      messages: [],
+      messages: initialMessage ? [{
+        sender: session.user.id,
+        content: initialMessage,
+        type: "exchange_request",
+        readBy: [{ user: session.user.id, readAt: new Date() }]
+      }] : [],
+      scheduledFor: scheduledFor ? new Date(scheduledFor) : undefined,
     });
 
     await exchange.save();

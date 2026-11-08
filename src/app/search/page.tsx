@@ -471,13 +471,12 @@ export default function SearchPage() {
                       </button>
                       <button
                         onClick={() => {
-                          setSelectedPartner(user);
-                          setShowExchangeModal(true);
+                          router.push(`/exchanges/propose?userId=${user._id}`);
                         }}
                         className="flex-[1.4] bg-primary hover:bg-primary-container text-white text-xs font-semibold py-2.5 rounded-xl shadow-sm hover:shadow transition-all active:scale-95 flex items-center justify-center gap-1.5"
                       >
                         <Repeat className="w-3.5 h-3.5" />
-                        <span>Propose Exchange</span>
+                        <span>Propose Barter</span>
                       </button>
                     </div>
                   </div>

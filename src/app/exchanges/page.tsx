@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Exchange, ExchangeStatus } from '@/types';
 import Link from 'next/link';
+import { Modal } from '@/components/Modal';
 
 export default function ExchangesPage() {
   const { data: session, status } = useSession();
@@ -23,6 +24,12 @@ export default function ExchangesPage() {
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'active' | 'completed'>('all');
+
+  // Feedback request modal state (Stitch screen be9c73474b4c43799b5e7cc0d55e475b)
+  const [feedbackExchange, setFeedbackExchange] = useState<Exchange | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -54,6 +61,34 @@ export default function ExchangesPage() {
     if (activeTab === 'all') return true;
     return e.status === activeTab;
   });
+
+  const handleSendFeedback = async () => {
+    if (!feedbackExchange) return;
+    setIsSendingFeedback(true);
+    try {
+      const response = await fetch(`/api/exchanges/${feedbackExchange._id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: feedbackMessage.trim() || `Hi! I really enjoyed our exchange. Would you mind leaving a quick review and feedback on our skill swap?`,
+          type: 'exchange_completed',
+        }),
+      });
+
+      if (response.ok) {
+        setFeedbackSuccess(true);
+        setTimeout(() => {
+          setFeedbackSuccess(false);
+          setFeedbackExchange(null);
+          setFeedbackMessage('');
+        }, 1500);
+      }
+    } catch (err) {
+      console.error('Failed to send feedback request:', err);
+    } finally {
+      setIsSendingFeedback(false);
+    }
+  };
 
   const getStatusBadge = (exchangeStatus: ExchangeStatus) => {
     switch (exchangeStatus) {
@@ -139,10 +174,15 @@ export default function ExchangesPage() {
             ))}
           </div>
 
-          <Link href="/search" className="btn-primary text-xs py-2 px-4 whitespace-nowrap">
-            <Plus className="w-3.5 h-3.5" />
-            <span>Create Barter</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/search" className="btn-outline text-xs py-2 px-3 whitespace-nowrap hidden sm:inline-flex">
+              Explore
+            </Link>
+            <Link href="/exchanges/propose" className="btn-primary text-xs py-2 px-4 whitespace-nowrap">
+              <Plus className="w-3.5 h-3.5" />
+              <span>Propose Barter</span>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -237,23 +277,63 @@ export default function ExchangesPage() {
                   </div>
                 </div>
 
-                {/* Card Action Buttons */}
+                {/* Card Action Buttons (Tailored by State) */}
                 <div className="flex gap-2 pt-2 border-t border-outline-variant/15 mt-auto">
-                  <Link
-                    href={`/exchanges/${exchange._id}`}
-                    className="flex-1 bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5 text-outline" />
-                    <span>Chat Hub</span>
-                  </Link>
-
-                  <Link
-                    href={`/exchanges/${exchange._id}`}
-                    className="flex-1 bg-primary hover:bg-primary-container text-white text-xs font-semibold py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95"
-                  >
-                    <span>Workspace</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  {exchange.status === 'pending' ? (
+                    <>
+                      <Link
+                        href={`/exchanges/proposals/${exchange._id}`}
+                        className="flex-1 bg-primary hover:bg-primary-container text-white text-xs font-semibold py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95"
+                      >
+                        <span>{!isOfferer ? 'Review Proposal' : 'View Proposal'}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                      <Link
+                        href={`/exchanges/${exchange._id}`}
+                        className="bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold px-3 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 active:scale-95"
+                        title="Discuss in Chat"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 text-outline" />
+                      </Link>
+                    </>
+                  ) : exchange.status === 'completed' ? (
+                    <>
+                      <Link
+                        href={`/exchanges/${exchange._id}/handover`}
+                        className="flex-1 bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Deliverables</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setFeedbackExchange(exchange);
+                          setFeedbackMessage(`Hi ${partnerName}! I really enjoyed our exchange. Would you mind leaving a quick review of my ${isOfferer ? offeredSkillName : requestedSkillName} skills?`);
+                        }}
+                        className="flex-1 bg-primary hover:bg-primary-container text-white text-xs font-semibold py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95"
+                      >
+                        <Star className="w-3.5 h-3.5" />
+                        <span>Feedback</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href={`/exchanges/${exchange._id}`}
+                        className="flex-1 bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 text-outline" />
+                        <span>Chat Hub</span>
+                      </Link>
+                      <Link
+                        href={`/exchanges/${exchange._id}/handover`}
+                        className="flex-1 bg-primary hover:bg-primary-container text-white text-xs font-semibold py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95"
+                      >
+                        <span>Handover</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             );
@@ -273,6 +353,78 @@ export default function ExchangesPage() {
           </Link>
         </div>
       )}
+
+      {/* ─── Request Feedback Modal (Stitch Screen be9c73474b4c43799b5e7cc0d55e475b) ─── */}
+      <Modal
+        isOpen={Boolean(feedbackExchange)}
+        onClose={() => {
+          if (!isSendingFeedback) setFeedbackExchange(null);
+        }}
+        title="Request Feedback"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-on-surface-variant">
+            Ask{' '}
+            <strong className="text-on-surface">
+              {feedbackExchange &&
+                (typeof feedbackExchange.offeredBy === 'object' &&
+                (feedbackExchange.offeredBy as any)?._id !== session?.user?.id
+                  ? (feedbackExchange.offeredBy as any)?.name
+                  : (feedbackExchange.requestedBy as any)?.name || 'Collaborator')}
+            </strong>{' '}
+            for an endorsement and review on your recent skill exchange.
+          </p>
+
+          <div>
+            <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-outline block mb-1.5">
+              Personalized Message
+            </label>
+            <textarea
+              value={feedbackMessage}
+              onChange={(e) => setFeedbackMessage(e.target.value)}
+              rows={4}
+              placeholder="Hi! I really enjoyed our exchange. Would you mind leaving a quick review of my skills?"
+              className="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl p-3 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+            />
+          </div>
+
+          {feedbackSuccess && (
+            <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl font-medium">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Feedback request sent successfully!</span>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/20">
+            <button
+              type="button"
+              disabled={isSendingFeedback}
+              onClick={() => setFeedbackExchange(null)}
+              className="btn-secondary text-xs"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isSendingFeedback}
+              onClick={handleSendFeedback}
+              className="btn-primary text-xs flex items-center gap-1.5"
+            >
+              {isSendingFeedback ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <Star className="w-3.5 h-3.5" />
+                  <span>Send Request</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

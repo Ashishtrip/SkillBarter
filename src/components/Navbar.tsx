@@ -39,6 +39,7 @@ export function Navbar() {
   const navItems = [
     { name: 'Explore Skills', href: '/search' },
     { name: 'My Exchanges', href: '/exchanges' },
+    { name: 'Portfolio', href: '/portfolio' },
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Community', href: '/groups' },
   ];
