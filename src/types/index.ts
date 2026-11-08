@@ -5,6 +5,7 @@ export interface User {
   bio?: string;
   location?: string;
   avatar?: string;
+  image?: string;
   identityVerified?: boolean;
   identityVerificationMethod?: 'manual' | 'social';
   githubProfile?: string;

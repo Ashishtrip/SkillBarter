@@ -22,7 +22,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         }
 
         // Ensure the user is a participant of the exchange
-        if (!exchange.participants.some(p => p.toString() === session.user.id)) {
+        const userId = session?.user?.id;
+        if (!userId) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+        const isParticipant = [exchange.offeredBy?.toString(), exchange.requestedBy?.toString()].filter(Boolean).includes(userId);
+        if (!isParticipant) {
             return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
         }
 
@@ -42,14 +47,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         const durationInHours = durationInMs / 1000 / 60 / 60;
 
         // Update the credit balance of the participants
-        const participant1 = await User.findById(exchange.participants[0]);
-        const participant2 = await User.findById(exchange.participants[1]);
+        const participant1 = await User.findById(exchange.offeredBy);
+        const participant2 = await User.findById(exchange.requestedBy);
 
         if (participant1 && participant2) {
-            // This logic assumes participant1 is the teacher and participant2 is the learner.
-            // In a real application, you would need a way to distinguish between the teacher and the learner.
-            participant1.credit += durationInHours;
-            participant2.credit -= durationInHours;
+            participant1.credit = (participant1.credit || 0) + durationInHours;
+            participant2.credit = (participant2.credit || 0) - durationInHours;
             await participant1.save();
             await participant2.save();
         }

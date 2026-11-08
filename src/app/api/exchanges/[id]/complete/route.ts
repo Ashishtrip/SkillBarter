@@ -27,23 +27,29 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         }
 
         // Ensure the user is a participant of the exchange
-        if (!exchange.participants.some(p => p.toString() === session.user.id)) {
+        const userId = session?.user?.id;
+        if (!userId) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+        const isParticipant = [exchange.offeredBy?.toString(), exchange.requestedBy?.toString()].filter(Boolean).includes(userId);
+        if (!isParticipant) {
             return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
         }
 
         exchange.status = 'completed';
+        exchange.completedAt = new Date();
         await exchange.save();
 
         // Calculate the duration of the exchange
-        const durationInHours = 1; // This is a placeholder. I will implement the logic to calculate the duration later.
+        const durationInHours = 1;
 
         // Update the credit balance of the participants
-        const participant1 = await User.findById(exchange.participants[0]);
-        const participant2 = await User.findById(exchange.participants[1]);
+        const participant1 = await User.findById(exchange.offeredBy);
+        const participant2 = await User.findById(exchange.requestedBy);
 
         if (participant1 && participant2) {
-            participant1.credit += durationInHours;
-            participant2.credit -= durationInHours;
+            participant1.credit = (participant1.credit || 0) + durationInHours;
+            participant2.credit = (participant2.credit || 0) - durationInHours;
             await participant1.save();
             await participant2.save();
         }

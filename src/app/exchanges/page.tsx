@@ -3,7 +3,17 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { MessageSquare, Clock, CheckCircle, XCircle, Plus, Filter } from 'lucide-react';
+import {
+  MessageSquare,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Plus,
+  Star,
+  Repeat,
+  ArrowRight,
+  ExternalLink,
+} from 'lucide-react';
 import { Exchange, ExchangeStatus } from '@/types';
 import Link from 'next/link';
 
@@ -12,16 +22,7 @@ export default function ExchangesPage() {
   const router = useRouter();
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<ExchangeStatus | ''>('');
-  const [showFilters, setShowFilters] = useState(false);
-
-  const statusOptions: { value: ExchangeStatus | ''; label: string; color: string }[] = [
-    { value: '', label: 'All Exchanges', color: 'text-secondary-600' },
-    { value: 'pending', label: 'Pending', color: 'text-yellow-600' },
-    { value: 'active', label: 'Active', color: 'text-blue-600' },
-    { value: 'completed', label: 'Completed', color: 'text-green-600' },
-    { value: 'cancelled', label: 'Cancelled', color: 'text-red-600' },
-  ];
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'active' | 'completed'>('all');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -32,17 +33,14 @@ export default function ExchangesPage() {
     if (session) {
       fetchExchanges();
     }
-  }, [session, status, router, statusFilter]);
+  }, [session, status, router]);
 
   const fetchExchanges = async () => {
     try {
-      const params = new URLSearchParams();
-      if (statusFilter) params.append('status', statusFilter);
-      
-      const response = await fetch(`/api/exchanges?${params.toString()}`);
+      const response = await fetch('/api/exchanges');
       if (response.ok) {
         const result = await response.json();
-        const data = Array.isArray(result) ? result : (result.data || []);
+        const data = Array.isArray(result) ? result : result.data || [];
         setExchanges(data);
       }
     } catch (error) {
@@ -52,33 +50,43 @@ export default function ExchangesPage() {
     }
   };
 
-  const getStatusIcon = (status: ExchangeStatus) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="w-4 h-4" />;
-      case 'active':
-        return <MessageSquare className="w-4 h-4" />;
-      case 'completed':
-        return <CheckCircle className="w-4 h-4" />;
-      case 'cancelled':
-        return <XCircle className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
+  const filteredExchanges = exchanges.filter((e) => {
+    if (activeTab === 'all') return true;
+    return e.status === activeTab;
+  });
 
-  const getStatusColor = (status: ExchangeStatus) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+  const getStatusBadge = (exchangeStatus: ExchangeStatus) => {
+    switch (exchangeStatus) {
       case 'active':
-        return 'bg-blue-100 text-blue-800';
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+            Active
+          </span>
+        );
+      case 'pending':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">
+            Pending Response
+          </span>
+        );
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
+            Completed
+          </span>
+        );
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-error/10 text-error border border-error/20">
+            Cancelled
+          </span>
+        );
       default:
-        return 'bg-secondary-100 text-secondary-800';
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-container text-on-surface-variant">
+            {exchangeStatus}
+          </span>
+        );
     }
   };
 
@@ -93,132 +101,178 @@ export default function ExchangesPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 bg-primary-600 rounded-full animate-pulse" />
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <p className="text-xs text-on-surface-variant font-mono">Loading your exchanges...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4 sm:gap-0">
+    <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 space-y-8">
+      {/* ─── Header & Status Filter Bar (Stitch Style) ─── */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-outline-variant/20 pb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 mb-1 sm:mb-2">My Exchanges</h1>
-          <p className="text-sm sm:text-base text-secondary-600">Manage your skill exchange partnerships</p>
+          <h1 className="text-headline-lg font-headline-lg font-bold text-on-surface tracking-tight mb-1">
+            My Exchanges
+          </h1>
+          <p className="text-body-md text-on-surface-variant">
+            Manage your active learning and teaching partnerships.
+          </p>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:space-x-4">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="btn-outline flex items-center justify-center space-x-2 text-xs sm:text-sm py-2 px-3 sm:py-2.5 sm:px-4"
-          >
-            <Filter className="w-4 h-4" />
-            <span>Filter</span>
-          </button>
-          <button 
-            onClick={() => router.push('/search')}
-            className="btn-primary flex items-center justify-center space-x-2 text-xs sm:text-sm py-2 px-3 sm:py-2.5 sm:px-4"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">New Exchange</span>
-            <span className="sm:hidden">New</span>
-          </button>
-        </div>
-      </div>
 
-      {/* Filters */}
-      {showFilters && (
-        <div className="bg-white rounded-xl shadow-sm border border-secondary-200 p-4 sm:p-6 mb-6">
-          <div className="flex flex-wrap gap-2">
-            {statusOptions.map((option) => (
+        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+          {/* Segmented Tab Pill */}
+          <div className="flex gap-1 bg-surface-container-low p-1 rounded-xl">
+            {(['all', 'pending', 'active', 'completed'] as const).map((tab) => (
               <button
-                key={option.value}
-                onClick={() => setStatusFilter(option.value)}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                  statusFilter === option.value
-                    ? 'bg-primary-100 text-primary-700 border border-primary-300'
-                    : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+                  activeTab === tab
+                    ? 'bg-surface-container-lowest text-primary shadow-sm'
+                    : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
-                {option.label}
+                {tab}
               </button>
             ))}
           </div>
-        </div>
-      )}
 
-      {/* Exchanges List */}
-      <div className="space-y-3 sm:space-y-4">
-        {exchanges.length > 0 ? (
-          exchanges.map((exchange) => (
-            <div key={exchange._id} className="card hover:shadow-md transition-shadow">
-              <div className="flex flex-col gap-3 sm:gap-4">
-                <div className="flex flex-wrap items-start gap-2 sm:gap-3">
-                  <span
-                    className={`inline-flex items-center space-x-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(exchange.status)}`}
-                  >
-                    {getStatusIcon(exchange.status)}
-                    <span className="hidden sm:inline">{exchange.status.charAt(0).toUpperCase() + exchange.status.slice(1)}</span>
-                    <span className="sm:hidden capitalize">{exchange.status.slice(0, 3)}</span>
-                  </span>
-                  <span className="text-xs sm:text-sm text-secondary-500">
-                    Created {formatDate(exchange.createdAt)}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-medium text-secondary-900 mb-2 text-sm sm:text-base">Skills Exchange</h3>
-                    <div className="text-xs sm:text-sm space-y-1.5">
-                      <p className="text-secondary-600">
-                        Teaching: <span className="font-medium text-secondary-900">{typeof exchange.skills.offered === 'string' ? exchange.skills.offered : exchange.skills.offered?.name}</span>
-                      </p>
-                      <p className="text-secondary-600">
-                        Learning: <span className="font-medium text-secondary-900">{typeof exchange.skills.requested === 'string' ? exchange.skills.requested : exchange.skills.requested?.name}</span>
+          <Link href="/search" className="btn-primary text-xs py-2 px-4 whitespace-nowrap">
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create Barter</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* ─── Exchanges Grid (Stitch Style) ─── */}
+      {filteredExchanges.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredExchanges.map((exchange) => {
+            const isOfferer =
+              typeof exchange.offeredBy === 'object' &&
+              (exchange.offeredBy as any)?._id === session?.user?.id;
+
+            const partnerName =
+              typeof exchange.offeredBy === 'object' &&
+              (exchange.offeredBy as any)?._id !== session?.user?.id
+                ? (exchange.offeredBy as any)?.name
+                : typeof exchange.requestedBy === 'object'
+                ? (exchange.requestedBy as any)?.name
+                : 'Partner';
+
+            const offeredSkillName =
+              typeof exchange.skills?.offered === 'object' && exchange.skills?.offered !== null
+                ? (exchange.skills.offered as any).name
+                : exchange.skills?.offered || 'Offer';
+
+            const requestedSkillName =
+              typeof exchange.skills?.requested === 'object' && exchange.skills?.requested !== null
+                ? (exchange.skills.requested as any).name
+                : exchange.skills?.requested || 'Need';
+
+            const progressPct =
+              exchange.status === 'completed'
+                ? 100
+                : exchange.status === 'active'
+                ? 50
+                : 15;
+
+            return (
+              <div
+                key={exchange._id}
+                className="bento-card rounded-2xl p-6 flex flex-col justify-between gap-5 group"
+              >
+                {/* Partner Header */}
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-full border border-outline-variant/40 bg-surface-container-low flex items-center justify-center font-bold text-primary text-sm flex-shrink-0">
+                      {partnerName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-display font-bold text-sm text-on-surface truncate">
+                        {partnerName}
+                      </h3>
+                      <p className="text-[11px] text-on-surface-variant flex items-center gap-1">
+                        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                        <span>4.9 · {exchange.messages?.length || 0} messages</span>
                       </p>
                     </div>
                   </div>
-                  
-                  <div>
-                    <p className="text-xs sm:text-sm text-secondary-600 mb-2">
-                      {exchange.messages.length} messages
-                    </p>
-                    {exchange.completedAt && (
-                      <p className="text-xs sm:text-sm text-secondary-600">
-                        Completed {formatDate(exchange.completedAt)}
-                      </p>
-                    )}
+                  {getStatusBadge(exchange.status)}
+                </div>
+
+                {/* 2-Column Split: Teaching vs Learning */}
+                <div className="grid grid-cols-2 gap-3 py-4 border-y border-outline-variant/25">
+                  <div className="pr-2 border-r border-outline-variant/15">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-outline block mb-1">
+                      Teaching
+                    </span>
+                    <span className="text-sm font-semibold text-on-surface line-clamp-1">
+                      {isOfferer ? offeredSkillName : requestedSkillName}
+                    </span>
+                  </div>
+                  <div className="pl-2">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-outline block mb-1">
+                      Learning
+                    </span>
+                    <span className="text-sm font-semibold text-on-surface line-clamp-1">
+                      {isOfferer ? requestedSkillName : offeredSkillName}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 pt-2 sm:pt-0">
-                  <Link href={`/exchanges/${exchange._id}`} className="btn-outline text-xs sm:text-sm py-1.5 sm:py-1 px-3 sm:px-3 flex-1 sm:flex-none text-center">
-                    View Details
+                {/* Milestone Progress Bar */}
+                <div>
+                  <div className="flex justify-between items-end mb-1.5 text-xs">
+                    <span className="text-on-surface-variant font-medium">Milestone Progress</span>
+                    <span className="text-primary font-mono font-bold">{progressPct}%</span>
+                  </div>
+                  <div className="w-full bg-surface-container-low rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Card Action Buttons */}
+                <div className="flex gap-2 pt-2 border-t border-outline-variant/15 mt-auto">
+                  <Link
+                    href={`/exchanges/${exchange._id}`}
+                    className="flex-1 bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-outline" />
+                    <span>Chat Hub</span>
                   </Link>
-                  {exchange.status === 'active' && (
-                    <Link href={`/exchanges/${exchange._id}`} className="btn-primary text-xs sm:text-sm py-1.5 sm:py-1 px-3 sm:px-3 flex-1 sm:flex-none text-center">
-                      Open Chat
-                    </Link>
-                  )}
+
+                  <Link
+                    href={`/exchanges/${exchange._id}`}
+                    className="flex-1 bg-primary hover:bg-primary-container text-white text-xs font-semibold py-2.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <span>Workspace</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center py-8 sm:py-12">
-            <MessageSquare className="w-10 h-10 sm:w-12 sm:h-12 text-secondary-300 mx-auto mb-3 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-secondary-900 mb-2">No exchanges yet</h3>
-            <p className="text-xs sm:text-base text-secondary-600 mb-4 sm:mb-6">
-              Start by finding someone to exchange skills with
-            </p>
-            <button 
-              onClick={() => router.push('/search')}
-              className="btn-primary text-xs sm:text-sm py-2 px-4 sm:py-2.5 sm:px-6"
-            >
-              Find Exchange Partners
-            </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/30 p-12 text-center shadow-card max-w-lg mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
+            <Repeat className="w-7 h-7" />
           </div>
-        )}
-      </div>
+          <h3 className="text-lg font-bold text-on-surface mb-2">No {activeTab} exchanges</h3>
+          <p className="text-xs text-on-surface-variant mb-6">
+            Explore active listings from other founders and professionals to propose your first skill trade.
+          </p>
+          <Link href="/search" className="btn-primary text-xs">
+            Find Exchange Partners
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

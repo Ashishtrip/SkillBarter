@@ -18,6 +18,7 @@ export interface IMessage {
 export interface IExchange {
   offeredBy: mongoose.Types.ObjectId;
   requestedBy: mongoose.Types.ObjectId;
+  participants: mongoose.Types.ObjectId[];
   skills: {
     offered: mongoose.Types.ObjectId;
     requested: mongoose.Types.ObjectId;
@@ -113,6 +114,12 @@ const ExchangeSchema = new Schema<IExchange>({
   },
 }, {
   timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
+
+ExchangeSchema.virtual('participants').get(function() {
+  return [this.offeredBy, this.requestedBy].filter(Boolean);
 });
 
 // Indexes for common queries

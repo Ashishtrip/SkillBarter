@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, User, MapPin } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, MapPin, ArrowRight, ShieldCheck } from 'lucide-react';
+import { signIn } from 'next-auth/react';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -15,10 +16,8 @@ export default function SignUp() {
     location: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -33,7 +32,6 @@ export default function SignUp() {
     setIsLoading(true);
     setError('');
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
@@ -49,222 +47,239 @@ export default function SignUp() {
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          bio: formData.bio,
-          location: formData.location,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
-      console.log('Response:', response);
-      console.log('Data:', data);
 
       if (response.ok) {
-        router.push('/dashboard');
+        // Automatically sign in the user
+        const loginRes = await signIn('credentials', {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+        });
+
+        if (loginRes?.ok) {
+          router.push('/dashboard');
+        } else {
+          router.push('/auth/signin');
+        }
       } else {
-        setError(data.error || 'Something went wrong. Please try again.');
+        setError(data.error || 'Failed to create account. Please try again.');
       }
-    } catch (error) {
+    } catch (err) {
       setError('Something went wrong. Please try again.');
-      console.error('Catch Error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 bg-primary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">S</span>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-secondary-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-secondary-600">
-            Or{' '}
-            <Link href="/auth/signin" className="font-medium text-primary-600 hover:text-primary-500">
-              sign in to your existing account
-            </Link>
-          </p>
+    <div className="min-h-screen flex flex-col md:flex-row bg-surface">
+      {/* ─── Left Side: Brand Identity (Stitch Style) ─── */}
+      <section className="hidden md:flex relative w-full md:w-1/2 min-h-screen bg-inverse-surface flex-col justify-between p-12 lg:p-16 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Top Logo */}
+        <div className="relative z-10">
+          <Link href="/" className="inline-flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary-fixed-dim text-inverse-surface font-bold flex items-center justify-center text-sm shadow">
+              SB
+            </div>
+            <span className="font-display text-xl font-bold tracking-tight text-white">
+              SkillBarter
+            </span>
+          </Link>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-secondary-700">
-                Full Name
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-secondary-400" />
-                </div>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  placeholder="Enter your full name"
-                />
-              </div>
-            </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-secondary-700">
-                Email address
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-secondary-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  placeholder="Enter your email"
-                />
-              </div>
-            </div>
+        {/* Center Quote */}
+        <div className="relative z-10 max-w-lg space-y-6">
+          <p className="font-display text-3xl lg:text-4xl font-bold leading-tight text-surface-bright">
+            Exchange mastery, expand runway,{' '}
+            <span className="text-primary-fixed-dim">accelerate your career.</span>
+          </p>
+          <div className="w-20 h-1 bg-primary-fixed-dim rounded-full" />
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-secondary-700">
-                Password
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-secondary-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="input-field pl-10 pr-10"
-                  placeholder="Create a password"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-secondary-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-secondary-400" />
-                  )}
-                </button>
-              </div>
+          <div className="pt-6 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/40 shadow-lg bg-surface-container-high flex items-center justify-center font-bold text-inverse-surface text-base">
+              MR
             </div>
-
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-secondary-700">
-                Confirm Password
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-secondary-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="input-field pl-10 pr-10"
-                  placeholder="Confirm your password"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-secondary-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-secondary-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="bio" className="block text-sm font-medium text-secondary-700">
-                Bio (Optional)
-              </label>
-              <textarea
-                id="bio"
-                name="bio"
-                rows={3}
-                value={formData.bio}
-                onChange={handleChange}
-                className="input-field mt-1"
-                placeholder="Tell us about yourself and your interests..."
-                maxLength={500}
-              />
-              <p className="mt-1 text-sm text-secondary-500">
-                {formData.bio.length}/500 characters
+              <p className="text-xs text-surface-variant italic max-w-xs">
+                "We built our entire MVP frontend and brand identity without external capital, strictly exchanging technical architecture."
               </p>
+              <span className="text-[11px] font-mono font-semibold text-primary-fixed uppercase tracking-wider block mt-1">
+                Marcus Rivera · Founder & Lead Architect
+              </span>
             </div>
+          </div>
+        </div>
 
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium text-secondary-700">
-                Location (Optional)
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MapPin className="h-5 w-5 text-secondary-400" />
-                </div>
-                <input
-                  id="location"
-                  name="location"
-                  type="text"
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  placeholder="City, Country"
-                />
-              </div>
+        {/* Bottom copyright */}
+        <div className="relative z-10 text-xs text-outline-variant">
+          © {new Date().getFullYear()} SkillBarter. Professional Reciprocity.
+        </div>
+      </section>
+
+      {/* ─── Right Side: Registration Form ─── */}
+      <section className="flex-1 flex flex-col justify-center items-center px-6 md:px-12 py-12 bg-surface">
+        <div className="w-full max-w-md space-y-5">
+          {/* Mobile Header Logo */}
+          <div className="md:hidden flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-lg bg-primary text-white font-bold flex items-center justify-center text-xs">
+              SB
             </div>
+            <span className="font-display text-lg font-bold text-primary">SkillBarter</span>
+          </div>
+
+          {/* Tab Switcher */}
+          <div className="bg-surface-container rounded-xl p-1 flex">
+            <button
+              onClick={() => router.push('/auth/signin')}
+              className="flex-1 py-2 rounded-lg font-semibold text-xs text-on-surface-variant hover:text-on-surface transition-all"
+            >
+              Sign In
+            </button>
+            <button
+              className="flex-1 py-2 rounded-lg font-semibold text-xs shadow-sm bg-surface-container-lowest text-primary transition-all"
+            >
+              Create Account
+            </button>
           </div>
 
           <div>
+            <h2 className="font-display text-2xl font-bold text-on-surface tracking-tight">
+              Create your account
+            </h2>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Join the professional barter network in seconds
+            </p>
+          </div>
+
+          {error && (
+            <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-xl text-xs font-medium">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            <div>
+              <label className="text-xs font-semibold text-on-surface-variant block mb-1 ml-0.5">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-outline absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Elena Vance"
+                  required
+                  className="input-field pl-10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-on-surface-variant block mb-1 ml-0.5">
+                Email address
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-outline absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="elena@company.com"
+                  required
+                  className="input-field pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-on-surface-variant block mb-1 ml-0.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-outline absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    required
+                    className="input-field pl-10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-on-surface-variant block mb-1 ml-0.5">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-outline absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    required
+                    className="input-field pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-on-surface-variant block mb-1 ml-0.5">
+                Location (Optional)
+              </label>
+              <div className="relative">
+                <MapPin className="w-4 h-4 text-outline absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  placeholder="San Francisco, CA (or Remote)"
+                  className="input-field pl-10"
+                />
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full btn-primary py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-primary hover:bg-primary-container text-white font-semibold text-xs rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2"
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              <span>{isLoading ? 'Creating Account...' : 'Get Started with SkillBarter'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
-          </div>
-        </form>
-      </div>
+          </form>
+
+          <p className="text-center text-[11px] text-outline px-4">
+            By creating an account, you agree to our{' '}
+            <Link href="/" className="underline text-on-surface hover:text-primary">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link href="/" className="underline text-on-surface hover:text-primary">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

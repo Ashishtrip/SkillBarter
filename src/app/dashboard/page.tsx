@@ -3,22 +3,20 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   MessageSquare,
   Clock,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   Star,
-  TrendingUp,
-  Users,
-  BookOpen,
   Plus,
   ArrowRight,
-  Zap,
-  Target,
+  TrendingUp,
   Award,
-  BarChart3,
-  Calendar,
+  Zap,
+  Repeat,
+  Sparkles,
 } from 'lucide-react';
 import { Exchange, User as UserType } from '@/types';
 
@@ -31,9 +29,9 @@ export default function Dashboard() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState({
     activeExchanges: 0,
+    skillsTeaching: 0,
+    skillsLearning: 0,
     completedExchanges: 0,
-    pendingRequests: 0,
-    totalSkills: 0,
   });
 
   useEffect(() => {
@@ -53,13 +51,12 @@ export default function Dashboard() {
 
       if (exchangesRes.ok) {
         const exchangesData = await exchangesRes.json();
-        const data = Array.isArray(exchangesData) ? exchangesData : (exchangesData.data || []);
+        const data = Array.isArray(exchangesData) ? exchangesData : exchangesData.data || [];
         setExchanges(data);
         setStats((prev) => ({
           ...prev,
           activeExchanges: data.filter((e: Exchange) => e.status === 'active').length,
           completedExchanges: data.filter((e: Exchange) => e.status === 'completed').length,
-          pendingRequests: data.filter((e: Exchange) => e.status === 'pending').length,
         }));
       }
 
@@ -69,7 +66,8 @@ export default function Dashboard() {
         setUser(userData);
         setStats((prev) => ({
           ...prev,
-          totalSkills: userData.skillsToTeach?.length || 0,
+          skillsTeaching: userData.skillsToTeach?.length || 0,
+          skillsLearning: userData.skillsToLearn?.length || 0,
         }));
       }
     } catch (error) {
@@ -77,26 +75,6 @@ export default function Dashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getStatusConfig = (exchangeStatus: string) => {
-    switch (exchangeStatus) {
-      case 'pending':
-        return { icon: Clock, color: 'text-warning-500', bg: 'bg-warning-50', label: 'Pending' };
-      case 'active':
-        return { icon: MessageSquare, color: 'text-primary-600', bg: 'bg-primary-50', label: 'Active' };
-      case 'completed':
-        return { icon: CheckCircle, color: 'text-success-500', bg: 'bg-success-50', label: 'Done' };
-      case 'cancelled':
-        return { icon: XCircle, color: 'text-error-500', bg: 'bg-error-50', label: 'Cancelled' };
-      default:
-        return { icon: Clock, color: 'text-secondary-400', bg: 'bg-secondary-50', label: exchangeStatus };
-    }
-  };
-
-  const formatDate = (date: string | Date) => {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const handleAcceptExchange = async (exchangeId: string) => {
@@ -127,282 +105,270 @@ export default function Dashboard() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="w-8 h-8 bg-primary-600 rounded-full animate-pulse" />
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <p className="text-xs text-on-surface-variant font-mono">Loading your barter dashboard...</p>
       </div>
     );
   }
 
-  const statCards = [
-    {
-      label: 'Active Exchanges',
-      value: stats.activeExchanges,
-      icon: Zap,
-      color: 'text-primary-600',
-      bg: 'bg-primary-50',
-      borderColor: 'border-l-primary-600',
-      href: '/exchanges',
-    },
-    {
-      label: 'Completed',
-      value: stats.completedExchanges,
-      icon: Target,
-      color: 'text-success-500',
-      bg: 'bg-success-50',
-      borderColor: 'border-l-success-500',
-      href: '/exchanges',
-    },
-    {
-      label: 'Pending',
-      value: stats.pendingRequests,
-      icon: Clock,
-      color: 'text-warning-500',
-      bg: 'bg-warning-50',
-      borderColor: 'border-l-warning-500',
-      href: '/exchanges',
-    },
-    {
-      label: 'My Skills',
-      value: stats.totalSkills,
-      icon: Award,
-      color: 'text-accent-500',
-      bg: 'bg-accent-50',
-      borderColor: 'border-l-accent-500',
-      href: '/profile',
-    },
-  ];
+  const ongoingExchanges = exchanges.filter((e) => e.status === 'active' || e.status === 'pending');
 
   return (
-    <div className="space-y-5">
-      {/* Welcome Banner */}
-      <div className="section-card overflow-hidden">
-        <div className="bg-gradient-to-r from-primary-600 to-primary-800 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-heading font-bold text-white mb-1">
-              Welcome back, {user?.name?.split(' ')[0]}! 👋
-            </h1>
-            <p className="text-sm text-primary-200">Here's your learning overview for today.</p>
+    <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row gap-8">
+      {/* ─── Left Sidebar: Quick Stats & Actions (Stitch Pattern) ─── */}
+      <aside className="w-full md:w-64 flex-shrink-0 flex flex-col gap-6">
+        {/* Quick Stats Card */}
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-6 shadow-card hover:shadow-card-hover transition-all">
+          <h2 className="text-xs font-mono font-bold text-outline uppercase tracking-wider mb-5">
+            Quick Stats
+          </h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center border-b border-surface-container-high pb-3">
+              <span className="text-sm font-medium text-on-surface">Active Exchanges</span>
+              <span className="text-2xl font-bold font-display text-primary">
+                {stats.activeExchanges}
+              </span>
+            </div>
+            <div className="flex justify-between items-center border-b border-surface-container-high pb-3">
+              <span className="text-sm font-medium text-on-surface">Skills Teaching</span>
+              <span className="text-2xl font-bold font-display text-tertiary">
+                {stats.skillsTeaching}
+              </span>
+            </div>
+            <div className="flex justify-between items-center pb-1">
+              <span className="text-sm font-medium text-on-surface">Skills Learning</span>
+              <span className="text-2xl font-bold font-display text-on-surface-variant">
+                {stats.skillsLearning}
+              </span>
+            </div>
           </div>
-          <button
-            onClick={() => router.push('/search')}
-            className="inline-flex items-center bg-white/15 hover:bg-white/25 text-white font-semibold py-2.5 px-5 rounded-full text-sm transition-all backdrop-blur-sm self-start"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            New Exchange
-          </button>
         </div>
-      </div>
 
-      {/* Byjus-style Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {statCards.map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={i}
-              onClick={() => router.push(stat.href)}
-              className={`stat-card border-l-4 ${stat.borderColor} cursor-pointer hover:shadow-card-hover transition-all`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-9 h-9 ${stat.bg} rounded-lg flex items-center justify-center`}>
-                  <Icon className={`w-4 h-4 ${stat.color}`} />
-                </div>
-              </div>
-              <p className="text-2xl font-heading font-bold text-secondary-900">{stat.value}</p>
-              <p className="text-[11px] text-secondary-400 mt-1 font-semibold uppercase tracking-wider">
-                {stat.label}
+        {/* Action Button: Quick Start: List Skill */}
+        <button
+          onClick={() => router.push('/profile')}
+          className="w-full bg-primary hover:bg-primary-container text-white text-sm font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Quick Start: List Skill</span>
+        </button>
+
+        {/* Find Exchange Partner shortcut */}
+        <button
+          onClick={() => router.push('/search')}
+          className="w-full bg-surface-container-lowest hover:bg-surface-container text-on-surface border border-outline-variant/40 text-sm font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+        >
+          <span>Find Exchange Partner</span>
+          <ArrowRight className="w-4 h-4 text-outline" />
+        </button>
+
+        {/* Mini Profile Card */}
+        {user && (
+          <div className="bg-surface-container-low rounded-2xl p-4 border border-outline-variant/30 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+              {user.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-on-surface truncate">{user.name}</p>
+              <p className="text-xs text-on-surface-variant truncate">
+                {user.location || 'Remote'} · ★ {(user.averageRating || 5.0).toFixed(1)}
               </p>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        )}
+      </aside>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Recent Exchanges */}
-        <div className="lg:col-span-2 section-card">
-          <div className="section-card-header">
-            <h2 className="text-base font-heading font-semibold text-secondary-900">Recent Exchanges</h2>
-            <button
-              onClick={() => router.push('/exchanges')}
-              className="text-sm font-semibold text-primary-600 hover:text-primary-700 flex items-center"
+      {/* ─── Right Section: Ongoing Barters & Activity ─── */}
+      <section className="flex-grow flex flex-col gap-8 min-w-0">
+        {/* Ongoing Barters Section */}
+        <div>
+          <div className="flex justify-between items-center mb-5">
+            <div>
+              <h1 className="text-2xl font-bold font-display text-on-surface tracking-tight">
+                Ongoing Barters
+              </h1>
+              <p className="text-xs text-on-surface-variant mt-0.5">
+                Your currently active and pending skill trade commitments.
+              </p>
+            </div>
+            <Link
+              href="/exchanges"
+              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
             >
-              View All <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </button>
+              All Exchanges <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
-          <div className="divide-y divide-secondary-200/60">
-            {exchanges.length > 0 ? (
-              exchanges.slice(0, 5).map((exchange) => {
-                const config = getStatusConfig(exchange.status);
-                const StatusIcon = config.icon;
+          {ongoingExchanges.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {ongoingExchanges.map((exchange) => {
+                const offeredTitle = exchange.skills?.offered
+                  ? typeof exchange.skills.offered === 'object'
+                    ? (exchange.skills.offered as any).name
+                    : exchange.skills.offered
+                  : 'Skill Trade';
+
+                const requestedTitle = exchange.skills?.requested
+                  ? typeof exchange.skills.requested === 'object'
+                    ? (exchange.skills.requested as any).name
+                    : exchange.skills.requested
+                  : 'Skill Learning';
+
+                const otherUser =
+                  typeof exchange.offeredBy === 'object' &&
+                  (exchange.offeredBy as any)?._id !== session?.user?.id
+                    ? (exchange.offeredBy as any)?.name
+                    : typeof exchange.requestedBy === 'object'
+                    ? (exchange.requestedBy as any)?.name
+                    : 'Collaborator';
+
+                // Progress simulation or based on completed milestones
+                const progressPct = exchange.status === 'completed' ? 100 : exchange.status === 'active' ? 50 : 15;
+
                 return (
                   <div
                     key={exchange._id}
-                    className="px-5 sm:px-6 py-4 hover:bg-secondary-50/50 transition-colors cursor-pointer flex items-center justify-between gap-3"
-                    onClick={() => router.push(`/exchanges/${exchange._id}`)}
+                    className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-6 shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between"
                   >
-                    <div className="flex items-center space-x-3 min-w-0 flex-1">
-                      <div className={`w-9 h-9 ${config.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                        <StatusIcon className={`w-4 h-4 ${config.color}`} />
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full border border-outline-variant/40 bg-surface-container flex items-center justify-center font-bold text-primary text-sm flex-shrink-0">
+                            {otherUser.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-on-surface">{offeredTitle}</h3>
+                            <p className="text-xs text-on-surface-variant">with {otherUser}</p>
+                          </div>
+                        </div>
+                        <span
+                          className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider ${
+                            exchange.status === 'active'
+                              ? 'bg-primary/10 text-primary border border-primary/20'
+                              : 'bg-amber-500/10 text-amber-700 border border-amber-500/20'
+                          }`}
+                        >
+                          {exchange.status}
+                        </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-secondary-900 truncate">
-                          {exchange.skills?.offered
-                            ? typeof exchange.skills.offered === 'object'
-                              ? (exchange.skills.offered as any).name
-                              : exchange.skills.offered
-                            : 'Unknown'}{' '}
-                          ↔{' '}
-                          {exchange.skills?.requested
-                            ? typeof exchange.skills.requested === 'object'
-                              ? (exchange.skills.requested as any).name
-                              : exchange.skills.requested
-                            : 'Unknown'}
+
+                      <div className="mb-5">
+                        <p className="text-xs text-on-surface-variant mb-2">
+                          Exchange for: <span className="font-semibold text-on-surface">{requestedTitle}</span>
                         </p>
-                        <p className="text-xs text-secondary-400 mt-0.5">
-                          {exchange.messages?.length || 0} messages • {formatDate(exchange.createdAt || new Date())}
-                        </p>
+                        {/* Progress Bar */}
+                        <div className="w-full bg-surface-container-high rounded-full h-2">
+                          <div
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[11px] text-outline mt-1 font-mono">
+                          <span>Progress</span>
+                          <span>{progressPct}%</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {exchange.status === 'active' && (
-                        <button
-                          onClick={() => handleCompleteExchange(exchange._id as string)}
-                          className="text-xs font-semibold text-success-500 hover:text-success-600 bg-success-50 px-3 py-1.5 rounded-full transition-colors"
-                        >
-                          Complete
-                        </button>
-                      )}
+
+                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-outline-variant/20">
                       {exchange.status === 'pending' && (
                         <button
                           onClick={() => handleAcceptExchange(exchange._id as string)}
-                          className="text-xs font-semibold text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full hover:bg-primary-100 transition-colors"
+                          className="text-xs font-semibold bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary-container transition-colors"
                         >
-                          Accept
+                          Accept Proposal
                         </button>
                       )}
-                      <span className={`badge text-[10px] ${config.bg} ${config.color}`}>
-                        {config.label}
-                      </span>
+                      {exchange.status === 'active' && (
+                        <button
+                          onClick={() => handleCompleteExchange(exchange._id as string)}
+                          className="text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 px-3 py-1.5 rounded-lg hover:bg-emerald-500/20 transition-colors"
+                        >
+                          Mark Done
+                        </button>
+                      )}
+                      <button
+                        onClick={() => router.push(`/exchanges/${exchange._id}`)}
+                        className="text-on-surface-variant hover:text-primary p-2 rounded-lg hover:bg-surface-container transition-colors"
+                        title="Chat & Details"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => router.push(`/exchanges/${exchange._id}`)}
+                        className="bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold py-1.5 px-3.5 rounded-lg transition-colors"
+                      >
+                        Details
+                      </button>
                     </div>
                   </div>
                 );
-              })
-            ) : (
-              <div className="px-6 py-12 text-center">
-                <div className="w-14 h-14 bg-secondary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-6 h-6 text-secondary-300" />
-                </div>
-                <h3 className="text-base font-heading font-semibold text-secondary-900 mb-1">No exchanges yet</h3>
-                <p className="text-sm text-secondary-400 mb-4">
-                  Start by finding someone to exchange skills with
-                </p>
-                <button onClick={() => router.push('/search')} className="btn-primary text-sm">
-                  Find Exchange Partners
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-5">
-          {/* Quick Actions */}
-          <div className="section-card">
-            <div className="section-card-header">
-              <h3 className="text-base font-heading font-semibold text-secondary-900">Quick Actions</h3>
+              })}
             </div>
-            <div className="section-card-body space-y-2">
+          ) : (
+            <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-10 text-center shadow-card">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3">
+                <Repeat className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-on-surface mb-1">No active exchanges yet</h3>
+              <p className="text-xs text-on-surface-variant max-w-sm mx-auto mb-5">
+                Explore partners with matching skill overlap and send your first exchange proposal.
+              </p>
               <button
                 onClick={() => router.push('/search')}
-                className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 text-left transition-colors group"
+                className="btn-primary text-xs"
               >
-                <div className="w-8 h-8 bg-primary-50 group-hover:bg-primary-100 rounded-lg flex items-center justify-center transition-colors">
-                  <Plus className="w-4 h-4 text-primary-600" />
-                </div>
-                <span className="text-sm font-medium text-secondary-700">New Exchange</span>
+                Explore Exchange Partners
               </button>
-              <button
-                onClick={() => router.push('/profile')}
-                className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-accent-50 text-left transition-colors group"
-              >
-                <div className="w-8 h-8 bg-accent-50 group-hover:bg-accent-100 rounded-lg flex items-center justify-center transition-colors">
-                  <BookOpen className="w-4 h-4 text-accent-500" />
-                </div>
-                <span className="text-sm font-medium text-secondary-700">Add Skills</span>
-              </button>
-              <button
-                onClick={() => router.push('/groups')}
-                className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-success-50 text-left transition-colors group"
-              >
-                <div className="w-8 h-8 bg-success-50 group-hover:bg-success-100 rounded-lg flex items-center justify-center transition-colors">
-                  <Users className="w-4 h-4 text-success-500" />
-                </div>
-                <span className="text-sm font-medium text-secondary-700">Join Community</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Profile Card */}
-          {user && (
-            <div className="section-card">
-              <div className="section-card-body">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="avatar-lg flex-shrink-0">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-sm font-heading font-semibold text-secondary-900 truncate">{user.name}</h4>
-                    <p className="text-xs text-secondary-400 truncate">{user.location || 'No location set'}</p>
-                  </div>
-                </div>
-
-                {user.averageRating > 0 && (
-                  <div className="flex items-center space-x-1.5 mb-4">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-3.5 h-3.5 ${
-                            star <= user.averageRating
-                              ? 'text-warning-400 fill-current'
-                              : 'text-secondary-200'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs text-secondary-400">
-                      {user.averageRating.toFixed(1)} ({user.totalReviews})
-                    </span>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-secondary-50 rounded-lg p-3 text-center">
-                    <p className="text-lg font-heading font-bold text-secondary-900">
-                      {user.skillsToTeach?.length || 0}
-                    </p>
-                    <p className="text-[10px] text-secondary-400 uppercase tracking-wider font-semibold">Teaching</p>
-                  </div>
-                  <div className="bg-secondary-50 rounded-lg p-3 text-center">
-                    <p className="text-lg font-heading font-bold text-secondary-900">
-                      {user.skillsToLearn?.length || 0}
-                    </p>
-                    <p className="text-[10px] text-secondary-400 uppercase tracking-wider font-semibold">Learning</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => router.push('/profile')}
-                  className="w-full btn-outline text-sm py-2"
-                >
-                  View Profile
-                </button>
-              </div>
             </div>
           )}
         </div>
-      </div>
+
+        {/* Recent Activity Section (Stitch Style) */}
+        <div>
+          <h2 className="text-xl font-bold font-display text-on-surface tracking-tight mb-4">
+            Recent Activity
+          </h2>
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-card overflow-hidden">
+            <ul className="divide-y divide-outline-variant/20">
+              <li className="p-4 hover:bg-surface-bright transition-colors flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div className="flex-grow min-w-0">
+                  <p className="text-sm font-medium text-on-surface">
+                    Profile updated with skills & expertise
+                  </p>
+                  <p className="text-xs text-outline font-mono mt-0.5">Recently active</p>
+                </div>
+              </li>
+              <li className="p-4 hover:bg-surface-bright transition-colors flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary flex-shrink-0">
+                  <Repeat className="w-5 h-5" />
+                </div>
+                <div className="flex-grow min-w-0">
+                  <p className="text-sm font-medium text-on-surface">
+                    Kinetic barter algorithm updated your match recommendations
+                  </p>
+                  <p className="text-xs text-outline font-mono mt-0.5">Automated update</p>
+                </div>
+              </li>
+              <li className="p-4 hover:bg-surface-bright transition-colors flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                  <Star className="w-5 h-5" />
+                </div>
+                <div className="flex-grow min-w-0">
+                  <p className="text-sm font-medium text-on-surface">
+                    Member reputation in good standing
+                  </p>
+                  <p className="text-xs text-outline font-mono mt-0.5">Verified peer</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

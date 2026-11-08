@@ -10,9 +10,9 @@ import {
   Trash2,
   Search,
   X,
-  Star,
-  Zap,
-  ChevronDown,
+  CheckCircle2,
+  Sparkles,
+  Award,
 } from 'lucide-react';
 
 interface Skill {
@@ -25,14 +25,18 @@ interface Skill {
 }
 
 const LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
-const CATEGORIES = ['tech', 'music', 'languages', 'academics', 'management', 'arts', 'sports', 'cooking', 'crafts', 'other'];
-
-const levelColor: Record<string, string> = {
-  beginner: 'bg-green-100 text-green-700',
-  intermediate: 'bg-blue-100 text-blue-700',
-  advanced: 'bg-orange-100 text-orange-700',
-  expert: 'bg-purple-100 text-purple-700',
-};
+const CATEGORIES = [
+  'tech',
+  'music',
+  'languages',
+  'academics',
+  'management',
+  'arts',
+  'sports',
+  'cooking',
+  'crafts',
+  'other',
+];
 
 export default function MySkillsPage() {
   const { data: session, status } = useSession();
@@ -43,16 +47,15 @@ export default function MySkillsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'teach' | 'learn'>('teach');
 
-  // Add-skill form state
+  // Form state
   const [showForm, setShowForm] = useState(false);
   const [formName, setFormName] = useState('');
   const [formCategory, setFormCategory] = useState('tech');
-  const [formLevel, setFormLevel] = useState('beginner');
+  const [formLevel, setFormLevel] = useState('intermediate');
   const [formDescription, setFormDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchMySkills = useCallback(async () => {
@@ -82,7 +85,10 @@ export default function MySkillsPage() {
 
   const handleAddSkill = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formName.trim()) { setError('Skill name is required'); return; }
+    if (!formName.trim()) {
+      setError('Skill name is required');
+      return;
+    }
     setIsSubmitting(true);
     setError('');
     setSuccess('');
@@ -98,8 +104,9 @@ export default function MySkillsPage() {
           type: activeTab,
         }),
       });
+
       if (res.ok) {
-        setSuccess('Skill added successfully!');
+        setSuccess('Skill registered to your portfolio!');
         setFormName('');
         setFormDescription('');
         setShowForm(false);
@@ -122,15 +129,16 @@ export default function MySkillsPage() {
         fetchMySkills();
       }
     } catch {
-      // silently ignore
+      // ignore
     }
   };
 
   const filtered = (skills: Skill[]) =>
     searchTerm.trim()
-      ? skills.filter(s =>
-          s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          s.category.toLowerCase().includes(searchTerm.toLowerCase())
+      ? skills.filter(
+          (s) =>
+            s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.category.toLowerCase().includes(searchTerm.toLowerCase())
         )
       : skills;
 
@@ -138,310 +146,269 @@ export default function MySkillsPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="w-8 h-8 bg-primary-600 rounded-full animate-pulse" />
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <p className="text-xs text-outline font-mono">Loading skills portfolio...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      {/* Page Header */}
-      <div className="section-card overflow-hidden">
-        <div className="bg-gradient-to-r from-primary-600 to-primary-800 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-heading font-bold text-white mb-1">
-              My Skills
-            </h1>
-            <p className="text-sm text-primary-200">
-              Manage the skills you teach and want to learn
-            </p>
-          </div>
-          <button
-            onClick={() => { setShowForm(!showForm); setError(''); setSuccess(''); }}
-            className="inline-flex items-center bg-white/15 hover:bg-white/25 text-white font-semibold py-2.5 px-5 rounded-full text-sm transition-all backdrop-blur-sm self-start"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            Add Skill
-          </button>
+    <div className="max-w-container-max mx-auto px-4 md:px-8 py-8 space-y-8">
+      {/* ─── Page Header (Stitch Kinetic Style) ─── */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-outline-variant/20 pb-6">
+        <div>
+          <span className="text-xs font-mono font-bold text-primary uppercase tracking-wider block mb-1">
+            Expertise Inventory
+          </span>
+          <h1 className="text-headline-lg font-headline-lg font-bold text-on-surface tracking-tight">
+            My Skills & Offerings
+          </h1>
+          <p className="text-body-md text-on-surface-variant mt-1">
+            Manage your verified teaching specialties and target skills you want to learn.
+          </p>
         </div>
+
+        <button
+          onClick={() => {
+            setShowForm(!showForm);
+            setError('');
+            setSuccess('');
+          }}
+          className="btn-primary text-xs py-2.5 px-4"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Skill</span>
+        </button>
       </div>
 
-      {/* Success / Error banners */}
+      {/* Success Banner */}
       {success && (
-        <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 text-sm px-4 py-3 rounded-lg">
-          <Star className="w-4 h-4 flex-shrink-0" />
-          {success}
-          <button onClick={() => setSuccess('')} className="ml-auto"><X className="w-4 h-4" /></button>
+        <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs px-4 py-3 rounded-xl animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+          <span>{success}</span>
+          <button onClick={() => setSuccess('')} className="ml-auto text-emerald-700 hover:text-emerald-900">
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
-      {/* Add Skill Form */}
+      {/* ─── Modal / Form for Adding Skill ─── */}
       {showForm && (
-        <div className="section-card">
-          <div className="section-card-header">
-            <h2 className="text-base font-heading font-semibold text-secondary-900">
-              Add a New Skill to {activeTab === 'teach' ? 'Teach' : 'Learn'}
-            </h2>
-            <button onClick={() => setShowForm(false)} className="text-secondary-400 hover:text-secondary-600">
-              <X className="w-5 h-5" />
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 p-6 shadow-xl space-y-5 animate-in fade-in duration-200">
+          <div className="flex justify-between items-center border-b border-outline-variant/20 pb-3">
+            <div>
+              <h3 className="font-display font-bold text-base text-on-surface">
+                Add Skill to {activeTab === 'teach' ? 'Teach' : 'Learn'}
+              </h3>
+              <p className="text-xs text-on-surface-variant">
+                Detail your proficiency or target learning goals.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowForm(false)}
+              className="p-1.5 text-on-surface-variant hover:text-on-surface rounded-lg"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
-          <form onSubmit={handleAddSkill} className="section-card-body space-y-4">
-            {error && (
-              <p className="text-sm text-error-500 bg-error-50 px-3 py-2 rounded-lg">{error}</p>
-            )}
 
-            {/* Tab toggle inside form */}
-            <div className="flex bg-secondary-100 rounded-lg p-1 gap-1 w-fit">
-              {(['teach', 'learn'] as const).map(tab => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                    activeTab === tab
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-secondary-500 hover:text-secondary-700'
-                  }`}
-                >
-                  {tab === 'teach' ? '🎓 I can teach' : '📚 I want to learn'}
-                </button>
-              ))}
-            </div>
+          <form onSubmit={handleAddSkill} className="space-y-4">
+            {error && (
+              <p className="text-xs text-error bg-error/10 p-3 rounded-xl border border-error/20">
+                {error}
+              </p>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-1">
-                  Skill Name <span className="text-error-500">*</span>
+                <label className="text-xs font-semibold text-on-surface block mb-1.5">
+                  Skill Title
                 </label>
                 <input
                   type="text"
                   value={formName}
-                  onChange={e => setFormName(e.target.value)}
-                  placeholder="e.g., Python, Guitar, Spanish..."
-                  className="input-field w-full"
+                  onChange={(e) => setFormName(e.target.value)}
+                  placeholder="e.g. Next.js 14 App Router, Figma Design Systems..."
+                  required
+                  className="input-field"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-1">Category</label>
-                <div className="relative">
-                  <select
-                    value={formCategory}
-                    onChange={e => setFormCategory(e.target.value)}
-                    className="input-field w-full appearance-none pr-8"
-                  >
-                    {CATEGORIES.map(c => (
-                      <option key={c} value={c}>
-                        {c.charAt(0).toUpperCase() + c.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400 pointer-events-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-1">Level</label>
-                <div className="flex gap-2 flex-wrap">
-                  {LEVELS.map(l => (
-                    <button
-                      key={l}
-                      type="button"
-                      onClick={() => setFormLevel(l)}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                        formLevel === l
-                          ? `${levelColor[l]} border-transparent`
-                          : 'border-secondary-200 text-secondary-500 hover:border-secondary-300'
-                      }`}
-                    >
-                      {l.charAt(0).toUpperCase() + l.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-1">
-                  Description <span className="text-secondary-400 font-normal">(optional)</span>
+                <label className="text-xs font-semibold text-on-surface block mb-1.5">
+                  Category
                 </label>
-                <input
-                  type="text"
-                  value={formDescription}
-                  onChange={e => setFormDescription(e.target.value)}
-                  placeholder="Brief description..."
-                  className="input-field w-full"
-                />
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                  className="input-field"
+                >
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="flex gap-3 pt-1">
+            <div>
+              <label className="text-xs font-semibold text-on-surface block mb-1.5">
+                Proficiency Level
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {LEVELS.map((lvl) => (
+                  <button
+                    key={lvl}
+                    type="button"
+                    onClick={() => setFormLevel(lvl)}
+                    className={`py-2 px-3 rounded-xl text-xs font-semibold capitalize border transition-all ${
+                      formLevel === lvl
+                        ? 'bg-primary text-white border-primary shadow-sm'
+                        : 'bg-surface-container-low text-on-surface border-outline-variant/30 hover:border-primary'
+                    }`}
+                  >
+                    {lvl}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-on-surface block mb-1.5">
+                Description & Deliverables (Optional)
+              </label>
+              <textarea
+                rows={3}
+                value={formDescription}
+                onChange={(e) => setFormDescription(e.target.value)}
+                placeholder="Briefly describe what you will build, teach, or what topics you want to master..."
+                className="input-field"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="btn-primary flex items-center gap-2 disabled:opacity-60"
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="btn-secondary text-xs"
               >
-                {isSubmitting ? (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Plus className="w-4 h-4" />
-                )}
-                {isSubmitting ? 'Adding...' : 'Add Skill'}
-              </button>
-              <button type="button" onClick={() => setShowForm(false)} className="btn-outline">
                 Cancel
+              </button>
+              <button type="submit" disabled={isSubmitting} className="btn-primary text-xs">
+                {isSubmitting ? 'Saving...' : 'Add to Inventory'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-        <div className="stat-card border-l-4 border-l-primary-600">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-4 h-4 text-primary-600" />
-            </div>
-          </div>
-          <p className="text-2xl font-heading font-bold text-secondary-900">{teachSkills.length}</p>
-          <p className="text-[11px] text-secondary-400 mt-1 font-semibold uppercase tracking-wide">Skills to Teach</p>
+      {/* ─── Tabs & Search Filter ─── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        {/* Tab Pills */}
+        <div className="flex gap-1 bg-surface-container-low p-1 rounded-xl">
+          <button
+            onClick={() => setActiveTab('teach')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${
+              activeTab === 'teach'
+                ? 'bg-surface-container-lowest text-primary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <span>Skills I Teach</span>
+            <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] flex items-center justify-center font-mono">
+              {teachSkills.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab('learn')}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${
+              activeTab === 'learn'
+                ? 'bg-surface-container-lowest text-primary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            <span>Skills I Want to Learn</span>
+            <span className="w-5 h-5 rounded-full bg-tertiary/10 text-tertiary text-[10px] flex items-center justify-center font-mono">
+              {learnSkills.length}
+            </span>
+          </button>
         </div>
-        <div className="stat-card border-l-4 border-l-accent-500">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-9 h-9 bg-accent-50 rounded-lg flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-accent-500" />
-            </div>
-          </div>
-          <p className="text-2xl font-heading font-bold text-secondary-900">{learnSkills.length}</p>
-          <p className="text-[11px] text-secondary-400 mt-1 font-semibold uppercase tracking-wide">Skills to Learn</p>
+
+        {/* Filter Input */}
+        <div className="relative w-full sm:w-64">
+          <Search className="w-3.5 h-3.5 text-outline absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Filter skills..."
+            className="input-field pl-8 py-2 text-xs"
+          />
         </div>
       </div>
 
-      {/* Tabs + Search */}
-      <div className="section-card">
-        <div className="section-card-header flex-col sm:flex-row gap-3">
-          <div className="flex bg-secondary-100 rounded-lg p-1 gap-1">
-            <button
-              onClick={() => setActiveTab('teach')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === 'teach'
-                  ? 'bg-white text-primary-600 shadow-sm'
-                  : 'text-secondary-500 hover:text-secondary-700'
-              }`}
+      {/* ─── Skills Grid ─── */}
+      {displaySkills.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displaySkills.map((skill) => (
+            <div
+              key={skill._id || skill.name}
+              className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-6 shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between group"
             >
-              <GraduationCap className="w-4 h-4" />
-              Teaching
-              <span className="text-xs bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded-full font-bold">
-                {teachSkills.length}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('learn')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                activeTab === 'learn'
-                  ? 'bg-white text-accent-600 shadow-sm'
-                  : 'text-secondary-500 hover:text-secondary-700'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              Learning
-              <span className="text-xs bg-accent-100 text-accent-700 px-1.5 py-0.5 rounded-full font-bold">
-                {learnSkills.length}
-              </span>
-            </button>
-          </div>
-
-          <div className="relative sm:ml-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
-            <input
-              type="text"
-              placeholder="Search skills..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="input-field pl-9 text-sm w-full sm:w-56"
-            />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm('')} className="absolute right-2.5 top-1/2 -translate-y-1/2">
-                <X className="w-3.5 h-3.5 text-secondary-400" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Skills List */}
-        <div className="divide-y divide-secondary-200/60">
-          {displaySkills.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <div className="w-14 h-14 bg-secondary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                {activeTab === 'teach'
-                  ? <GraduationCap className="w-6 h-6 text-secondary-300" />
-                  : <BookOpen className="w-6 h-6 text-secondary-300" />
-                }
-              </div>
-              <h3 className="text-base font-heading font-semibold text-secondary-900 mb-1">
-                {searchTerm ? 'No matching skills' : `No ${activeTab === 'teach' ? 'teaching' : 'learning'} skills yet`}
-              </h3>
-              <p className="text-sm text-secondary-400 mb-4">
-                {searchTerm
-                  ? 'Try a different search term'
-                  : `Add skills you ${activeTab === 'teach' ? 'can teach others' : 'want to learn'}`
-                }
-              </p>
-              {!searchTerm && (
-                <button
-                  onClick={() => { setActiveTab(activeTab); setShowForm(true); }}
-                  className="btn-primary text-sm"
-                >
-                  <Plus className="w-4 h-4 mr-1.5 inline" />
-                  Add Your First Skill
-                </button>
-              )}
-            </div>
-          ) : (
-            displaySkills.map(skill => (
-              <div
-                key={skill._id}
-                className="flex items-center justify-between px-5 sm:px-6 py-4 hover:bg-secondary-50/50 transition-colors group"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    activeTab === 'teach' ? 'bg-primary-50' : 'bg-accent-50'
-                  }`}>
-                    <Zap className={`w-4 h-4 ${activeTab === 'teach' ? 'text-primary-600' : 'text-accent-500'}`} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-secondary-900 truncate">{skill.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-secondary-400 capitalize">{skill.category}</span>
-                      {skill.level && (
-                        <>
-                          <span className="text-secondary-300">·</span>
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${levelColor[skill.level] ?? 'bg-secondary-100 text-secondary-600'}`}>
-                            {skill.level}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    {skill.description && (
-                      <p className="text-xs text-secondary-400 mt-0.5 truncate max-w-xs">{skill.description}</p>
-                    )}
-                  </div>
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-outline bg-surface-container-low px-2 py-0.5 rounded">
+                    {skill.category}
+                  </span>
+                  <span className="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize">
+                    {skill.level}
+                  </span>
                 </div>
 
+                <h3 className="font-display font-bold text-base text-on-surface mb-2">
+                  {skill.name}
+                </h3>
+                {skill.description && (
+                  <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed mb-4">
+                    {skill.description}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center pt-3 border-t border-outline-variant/20 mt-4">
+                <span className="text-[11px] text-outline font-mono">
+                  {activeTab === 'teach' ? 'Offered for Barter' : 'Target Goal'}
+                </span>
                 <button
                   onClick={() => handleRemoveSkill(skill._id)}
-                  className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-error-400 hover:bg-error-50 hover:text-error-500 transition-all flex-shrink-0"
-                  title="Remove skill"
+                  className="p-1.5 text-outline hover:text-error hover:bg-error/10 rounded-lg transition-colors"
+                  title="Remove Skill"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
-      </div>
+      ) : (
+        <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/30 p-12 text-center shadow-card max-w-md mx-auto">
+          <BookOpen className="w-10 h-10 text-outline mx-auto mb-3" />
+          <h3 className="text-base font-bold text-on-surface mb-1">
+            No {activeTab === 'teach' ? 'teaching' : 'learning'} skills found
+          </h3>
+          <p className="text-xs text-on-surface-variant mb-5">
+            Add skills to your profile to match with suitable collaborators.
+          </p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="btn-primary text-xs"
+          >
+            Add Your First Skill
+          </button>
+        </div>
+      )}
     </div>
   );
 }

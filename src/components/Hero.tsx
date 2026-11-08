@@ -1,62 +1,85 @@
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Zap, Users, BookOpen, TrendingUp } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, ArrowRight, Sparkles, Repeat, ArrowUpRight } from 'lucide-react';
 
 export function Hero() {
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      router.push(`/search?search=${encodeURIComponent(query.trim())}`);
+    } else {
+      router.push('/search');
+    }
+  };
+
+  const trendingTags = [
+    'UI/UX Design',
+    'React & Next.js',
+    'Technical SEO',
+    'Python & AI',
+    'Brand Identity',
+    'Product Strategy',
+  ];
+
   return (
-    <section className="relative overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 rounded-card" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]" />
-      
-      <div className="relative px-6 sm:px-10 py-14 sm:py-20 md:py-24">
-        <div className="max-w-3xl">
-          {/* Eyebrow */}
-          <div className="inline-flex items-center space-x-2 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6">
-            <Zap className="w-4 h-4 text-warning-300" />
-            <span className="text-sm font-medium text-white/90">Join 1,200+ active skill exchangers</span>
-          </div>
+    <section className="relative text-center py-12 md:py-20 overflow-hidden">
+      {/* Subtle Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[56px] font-heading font-extrabold text-white leading-[1.1] mb-5">
-            Exchange Skills,{' '}
-            <span className="text-primary-200">Grow Together</span>
-          </h1>
+      {/* Eyebrow Badge */}
+      <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary px-3.5 py-1.5 rounded-full text-xs font-semibold mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <Sparkles className="w-3.5 h-3.5" />
+        <span>Professional Reciprocity for Modern Builders</span>
+      </div>
 
-          <p className="text-base sm:text-lg text-white/80 leading-relaxed mb-8 max-w-xl">
-            Teach what you know, learn what you need. Join a community of passionate learners and skilled teachers exchanging knowledge.
-          </p>
+      {/* Main Display Headline */}
+      <h1 className="text-display font-display text-on-surface max-w-4xl mx-auto mb-6 tracking-tight">
+        Unlock Potential Through <span className="text-primary">Reciprocity</span>
+      </h1>
 
-          <div className="flex flex-col sm:flex-row gap-3 mb-12">
-            <Link
-              href="/auth/signup"
-              className="inline-flex items-center justify-center bg-white text-primary-700 font-heading font-bold py-3 px-7 rounded-full text-sm hover:bg-primary-50 transition-all duration-200 shadow-lg hover:shadow-xl active:scale-[0.98]"
-            >
-              Get Started Free
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-            <Link
-              href="/search"
-              className="inline-flex items-center justify-center border-2 border-white/30 text-white font-heading font-semibold py-3 px-7 rounded-full text-sm hover:bg-white/10 transition-all duration-200"
-            >
-              Explore Skills
-            </Link>
-          </div>
+      {/* Subtitle */}
+      <p className="text-body-lg font-body-lg text-on-surface-variant max-w-2xl mx-auto mb-10">
+        Exchange high-value professional skills directly. Build your portfolio, collaborate with verified experts, and grow your startup—without spending a dime.
+      </p>
 
-          {/* Quick stats */}
-          <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-md">
-            <div>
-              <p className="text-2xl sm:text-3xl font-heading font-bold text-white">3.5K+</p>
-              <p className="text-xs sm:text-sm text-white/60 mt-0.5">Skills Exchanged</p>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-heading font-bold text-white">95%</p>
-              <p className="text-xs sm:text-sm text-white/60 mt-0.5">Success Rate</p>
-            </div>
-            <div>
-              <p className="text-2xl sm:text-3xl font-heading font-bold text-white">10+</p>
-              <p className="text-xs sm:text-sm text-white/60 mt-0.5">Categories</p>
-            </div>
-          </div>
-        </div>
+      {/* Instant Search Bar */}
+      <div className="max-w-2xl mx-auto relative glass-panel rounded-2xl p-2.5 shadow-sm mb-6 border border-outline-variant/40">
+        <form onSubmit={handleSearch} className="flex items-center gap-2">
+          <Search className="w-5 h-5 text-outline ml-3 flex-shrink-0" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Find your next skill match (e.g. React Developer, UI Designer)..."
+            className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm md:text-base text-on-surface placeholder:text-outline/70 px-2"
+          />
+          <button
+            type="submit"
+            className="bg-primary hover:bg-primary-container text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"
+          >
+            Search
+          </button>
+        </form>
+      </div>
+
+      {/* Trending Tags */}
+      <div className="flex items-center justify-center gap-2 flex-wrap max-w-2xl mx-auto text-xs text-on-surface-variant">
+        <span className="font-semibold text-outline uppercase tracking-wider text-[11px]">Trending:</span>
+        {trendingTags.map((tag) => (
+          <button
+            key={tag}
+            onClick={() => router.push(`/search?search=${encodeURIComponent(tag)}`)}
+            className="bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-primary px-3 py-1 rounded-full border border-outline-variant/30 transition-colors"
+          >
+            {tag}
+          </button>
+        ))}
       </div>
     </section>
   );

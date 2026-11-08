@@ -13,8 +13,8 @@ import {
   ThumbsUp,
   MessageSquare,
   User,
-  Tag,
-  Star
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { Content, SkillCategory } from '@/types';
 
@@ -46,9 +46,9 @@ export default function ContentPage() {
   ];
 
   const difficulties = [
-    { value: 'beginner', label: 'Beginner', color: 'text-green-600 bg-green-100' },
-    { value: 'intermediate', label: 'Intermediate', color: 'text-yellow-600 bg-yellow-100' },
-    { value: 'advanced', label: 'Advanced', color: 'text-red-600 bg-red-100' },
+    { value: 'beginner', label: 'Beginner', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+    { value: 'intermediate', label: 'Intermediate', color: 'text-amber-700 bg-amber-50 border-amber-200' },
+    { value: 'advanced', label: 'Advanced', color: 'text-rose-700 bg-rose-50 border-rose-200' },
   ];
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function ContentPage() {
 
   const getDifficultyColor = (difficulty: string) => {
     const diff = difficulties.find(d => d.value === difficulty);
-    return diff ? diff.color : 'text-gray-600 bg-gray-100';
+    return diff ? diff.color : 'text-secondary bg-surface-container border-outline-variant/30';
   };
 
   const formatTime = (minutes: number) => {
@@ -111,80 +111,99 @@ export default function ContentPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 bg-primary-600 rounded-full animate-pulse" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-secondary text-sm font-medium">Loading knowledge base...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-secondary-900 mb-2">Tutorials & Resources</h1>
-        <p className="text-secondary-600">Learn from the community and share your knowledge</p>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-secondary-200 p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-secondary-400" />
+    <div className="min-h-screen bg-background text-on-background py-8">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                <Sparkles className="w-3.5 h-3.5" />
+                Curated Peer Knowledge
+              </span>
             </div>
-            <input
-              type="text"
-              placeholder="Search tutorials, resources, and projects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="input-field pl-10 w-full"
-            />
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-on-surface tracking-tight">
+              Knowledge Repository
+            </h1>
+            <p className="text-secondary text-sm sm:text-base mt-1">
+              Explore step-by-step guides, architecture blueprints, and design systems contributed by barter partners.
+            </p>
           </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="btn-outline flex items-center space-x-2"
-          >
-            <Filter className="w-4 h-4" />
-            <span>Filters</span>
-          </button>
-          <button
-            onClick={handleSearch}
-            className="btn-primary px-8"
-          >
-            Search
-          </button>
         </div>
 
-        {/* Filters */}
-        {showFilters && (
-          <div className="mt-6 pt-6 border-t border-secondary-200">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Search & Filter Toolbar */}
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-4 sm:p-5 shadow-sm space-y-4">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex-1 relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-secondary/60" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search tutorials, resources, and articles..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-lowest focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm outline-none transition-all"
+              />
+            </div>
+
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-outline-variant/40 hover:bg-surface-container text-xs font-semibold text-on-surface transition-all"
+            >
+              <Filter className="w-4 h-4 text-secondary" />
+              <span>{showFilters ? 'Hide Filters' : 'Refine Filters'}</span>
+            </button>
+
+            <button
+              onClick={handleSearch}
+              className="btn-primary text-xs px-6 py-2.5"
+            >
+              Search
+            </button>
+          </div>
+
+          {/* Collapsible Filters */}
+          {showFilters && (
+            <div className="pt-4 border-t border-outline-variant/20 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
+                <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-1.5">
                   Category
                 </label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value as SkillCategory | '')}
-                  className="input-field"
+                  className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest text-sm outline-none capitalize"
                 >
                   <option value="">All Categories</option>
                   {categories.map((category) => (
                     <option key={category} value={category}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                      {category}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Type
+                <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-1.5">
+                  Content Type
                 </label>
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="input-field"
+                  className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest text-sm outline-none"
                 >
                   <option value="">All Types</option>
                   {contentTypes.map((type) => (
@@ -196,13 +215,13 @@ export default function ContentPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Difficulty
+                <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-1.5">
+                  Difficulty Level
                 </label>
                 <select
                   value={selectedDifficulty}
                   onChange={(e) => setSelectedDifficulty(e.target.value)}
-                  className="input-field"
+                  className="w-full px-3 py-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest text-sm outline-none"
                 >
                   <option value="">All Levels</option>
                   {difficulties.map((diff) => (
@@ -213,117 +232,136 @@ export default function ContentPage() {
                 </select>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Content Grid */}
-      <div className="space-y-6">
-        {content.map((item) => {
-          const TypeIcon = getContentTypeIcon(item.contentType);
-          return (
-            <div key={item._id} className="card hover:shadow-md transition-shadow">
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <TypeIcon className="w-6 h-6 text-primary-600" />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-secondary-900 line-clamp-1">
-                      {item.title}
-                    </h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(item.difficulty)}`}>
-                      {item.difficulty}
-                    </span>
+        {/* Content List */}
+        <div className="space-y-4">
+          {content.map((item) => {
+            const TypeIcon = getContentTypeIcon(item.contentType);
+            return (
+              <div 
+                key={item._id} 
+                className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-sm p-6 hover:-translate-y-[1px] hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <TypeIcon className="w-6 h-6" />
                   </div>
-
-                  <p className="text-secondary-600 mb-4 line-clamp-2">
-                    {item.content}
-                  </p>
-
-                  <div className="flex items-center space-x-4 text-sm text-secondary-500 mb-4">
-                    <div className="flex items-center space-x-1">
-                      <User className="w-4 h-4" />
-                      <span>{typeof item.author === 'string' ? item.author : (item.author as any)?.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{formatTime(item.estimatedTime)}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Eye className="w-4 h-4" />
-                      <span>{item.views} views</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <ThumbsUp className="w-4 h-4" />
-                      <span>{item.upvotes?.length || 0}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{item.comments?.length || 0}</span>
-                    </div>
-                  </div>
-
-                  {item.tags && item.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {item.tags.slice(0, 5).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      {item.tags.length > 5 && (
-                        <span className="px-2 py-1 bg-secondary-100 text-secondary-600 text-xs rounded-full">
-                          +{item.tags.length - 5}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-secondary-600">
-                        {item.category} • {item.contentType}
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                      <h3 className="font-display font-bold text-lg text-on-surface hover:text-primary transition-colors cursor-pointer">
+                        {item.title}
+                      </h3>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getDifficultyColor(item.difficulty)} capitalize`}>
+                        {item.difficulty}
                       </span>
                     </div>
-                    <button className="btn-primary text-sm py-1 px-4">
-                      View Details
-                    </button>
+
+                    <p className="text-secondary text-xs sm:text-sm line-clamp-2 mb-4 leading-relaxed">
+                      {item.content}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-secondary/80 mb-4">
+                      <div className="flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5" />
+                        <span>{typeof item.author === 'string' ? item.author : (item.author as any)?.name || 'Community Member'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{formatTime(item.estimatedTime || 15)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{item.views || 0} views</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <ThumbsUp className="w-3.5 h-3.5" />
+                        <span>{item.upvotes?.length || 0} upvotes</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>{item.comments?.length || 0} discussions</span>
+                      </div>
+                    </div>
+
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {item.tags.slice(0, 5).map((tag, index) => (
+                          <span
+                            key={index}
+                            className="font-mono text-[11px] px-2.5 py-0.5 bg-primary/5 text-primary-fixed-variant rounded-md border border-primary/10"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-3 border-t border-outline-variant/20">
+                      <span className="text-xs text-secondary font-medium capitalize">
+                        {item.category} • {item.contentType}
+                      </span>
+                      <button 
+                        onClick={() => alert(`Opening "${item.title}"...`)}
+                        className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5"
+                      >
+                        <span>Read Article</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
 
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="flex justify-center mt-8">
-          <div className="flex space-x-2">
+        {content.length === 0 && !isLoading && (
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-12 text-center max-w-lg mx-auto">
+            <BookOpen className="w-12 h-12 text-secondary/30 mx-auto mb-3" />
+            <h3 className="font-display font-bold text-lg text-on-surface">No resources found</h3>
+            <p className="text-secondary text-sm mt-1 mb-6">Try adjusting your filters or search keywords.</p>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCategory('');
+                setSelectedType('');
+                setSelectedDifficulty('');
+              }}
+              className="btn-outline text-xs px-4 py-2"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="flex justify-center items-center gap-3 pt-4">
             <button
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
               disabled={pagination.page === 1}
-              className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-outline text-xs px-3 py-2 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            <span className="flex items-center px-4 py-2 text-sm text-secondary-600">
+            <span className="text-xs text-secondary font-medium">
               Page {pagination.page} of {pagination.pages}
             </span>
             <button
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
               disabled={pagination.page === pagination.pages}
-              className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-outline text-xs px-3 py-2 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Next
             </button>
           </div>
-        </div>
-      )}
+        )}
+
+      </div>
     </div>
   );
 }

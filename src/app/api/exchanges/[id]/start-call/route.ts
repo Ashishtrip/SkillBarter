@@ -21,7 +21,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         }
 
         // Ensure the user is a participant of the exchange
-        if (!exchange.participants.some(p => p.toString() === session.user.id)) {
+        const userId = session?.user?.id;
+        if (!userId) {
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+        }
+        const isParticipant = [exchange.offeredBy?.toString(), exchange.requestedBy?.toString()].filter(Boolean).includes(userId);
+        if (!isParticipant) {
             return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
         }
 

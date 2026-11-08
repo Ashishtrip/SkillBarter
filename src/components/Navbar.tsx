@@ -1,28 +1,27 @@
 'use client';
 
-import React, { memo } from 'react';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
-  Home,
   Search,
-  Users,
   MessageSquare,
-  Bell,
   User,
   LogOut,
   Settings,
-  ChevronDown,
-  Briefcase,
+  BookOpen,
   LayoutDashboard,
+  Briefcase,
+  ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
-import { useState, useRef, useEffect } from 'react';
 
-function NavbarComponent() {
+export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
@@ -38,11 +37,10 @@ function NavbarComponent() {
   }, []);
 
   const navItems = [
-    { name: 'Home', href: session ? '/dashboard' : '/', icon: Home },
-    { name: 'Search', href: '/search', icon: Search },
-    { name: 'Community', href: '/groups', icon: Users },
-    { name: 'Exchanges', href: '/exchanges', icon: Briefcase },
-    { name: 'Messaging', href: '/exchanges', icon: MessageSquare },
+    { name: 'Explore Skills', href: '/search' },
+    { name: 'My Exchanges', href: '/exchanges' },
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Community', href: '/groups' },
   ];
 
   const isActive = (href: string) => {
@@ -53,139 +51,159 @@ function NavbarComponent() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
+      router.push(`/search?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
   return (
-    <nav className="bg-white shadow-navbar sticky top-0 z-40 border-b border-secondary-200/60">
-      <div className="max-w-[1128px] mx-auto px-4">
-        <div className="flex items-center justify-between h-[52px]">
-          {/* Left: Logo + Search */}
-          <div className="flex items-center space-x-2">
-            <Link href="/" className="flex items-center space-x-1.5 flex-shrink-0">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-heading font-bold text-base">S</span>
+    <header className="sticky top-0 z-50 glass-nav border-b border-outline-variant/30">
+      <div className="max-w-container-max mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4">
+          {/* Brand & Left Navigation */}
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+                SB
               </div>
+              <span className="font-display text-xl font-bold tracking-tight text-primary">
+                SkillBarter
+              </span>
             </Link>
 
-            {/* Search Bar - LinkedIn style */}
-            <form onSubmit={handleSearchSubmit} className="hidden md:block">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-400" />
-                <input
-                  type="text"
-                  placeholder="Search skills, people..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-[280px] pl-9 pr-4 py-[7px] text-sm bg-secondary-50 border border-secondary-200 rounded-md focus:outline-none focus:ring-1 focus:ring-primary-600 focus:bg-white focus:w-[320px] transition-all duration-300 placeholder:text-secondary-400"
-                />
-              </div>
-            </form>
+            {/* Main Nav Links (Desktop) */}
+            <nav className="hidden md:flex items-center gap-6">
+              {navItems.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`text-sm font-medium transition-all duration-150 py-1 ${
+                      active
+                        ? 'text-primary font-bold border-b-2 border-primary'
+                        : 'text-on-surface-variant hover:text-primary'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* Center: Navigation Items - LinkedIn style vertical icons */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.name}
-                  href={session ? item.href : item.name === 'Search' ? item.href : '/auth/signin'}
-                  className={`flex flex-col items-center px-4 py-1 min-w-[80px] border-b-2 transition-colors duration-200 ${
-                    active
-                      ? 'border-secondary-900 text-secondary-900'
-                      : 'border-transparent text-secondary-400 hover:text-secondary-700'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-[11px] mt-0.5 font-medium">{item.name}</span>
-                </Link>
-              );
-            })}
-          </div>
+          {/* Search Bar (Desktop) */}
+          <form
+            onSubmit={handleSearchSubmit}
+            className="hidden lg:flex items-center relative flex-1 max-w-xs"
+          >
+            <Search className="absolute left-3 w-4 h-4 text-outline pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search skills, people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-surface-container-lowest/80 border border-outline-variant/40 rounded-xl pl-9 pr-4 py-2 text-xs text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+            />
+          </form>
 
-          {/* Right: Auth / Profile */}
-          <div className="flex items-center space-x-1">
-            {status === 'loading' ? (
-              <div className="w-8 h-8 bg-secondary-200 rounded-full animate-pulse" />
-            ) : session ? (
+          {/* Right Action Controls */}
+          <div className="flex items-center gap-3">
+            {/* Search icon for mobile / tablet */}
+            <Link
+              href="/search"
+              className="lg:hidden p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-xl transition-colors"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </Link>
+
+            {session ? (
               <>
+                {/* Notification Bell */}
                 <NotificationBell />
 
-                {/* Profile Dropdown */}
-                <div className="relative" ref={menuRef}>
+                {/* Messages shortcut */}
+                <Link
+                  href="/exchanges"
+                  className="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-xl transition-colors relative"
+                  aria-label="Messages & Exchanges"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                </Link>
+
+                {/* User Profile Dropdown */}
+                <div className="relative ml-1" ref={menuRef}>
                   <button
                     onClick={() => setShowProfileMenu(!showProfileMenu)}
-                    className="flex flex-col items-center px-3 py-1 text-secondary-400 hover:text-secondary-700 transition-colors"
+                    className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-primary/20 transition-all focus:outline-none"
+                    aria-expanded={showProfileMenu}
                   >
-                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
-                      <span className="text-[10px] font-bold text-primary-700">
-                        {session.user?.name?.charAt(0).toUpperCase() || 'U'}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-[11px] font-medium">Me</span>
-                      <ChevronDown className="w-3 h-3 ml-0.5" />
+                    <div className="w-9 h-9 rounded-full border-2 border-white shadow-sm overflow-hidden bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                      {session.user?.image ? (
+                        <img
+                          src={session.user.image}
+                          alt={session.user.name || 'User avatar'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span>{session.user?.name?.charAt(0).toUpperCase() || 'U'}</span>
+                      )}
                     </div>
                   </button>
 
+                  {/* Dropdown Menu */}
                   {showProfileMenu && (
-                    <div className="absolute right-0 mt-1 w-72 bg-white rounded-lg shadow-dropdown border border-secondary-200/60 py-2 z-50">
-                      {/* User Info */}
-                      <div className="px-4 py-3 border-b border-secondary-200/60">
-                        <div className="flex items-center space-x-3">
-                          <div className="avatar-md flex-shrink-0">
-                            {session.user?.name?.charAt(0).toUpperCase() || 'U'}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-secondary-900 truncate">
-                              {session.user?.name}
-                            </p>
-                            <p className="text-xs text-secondary-500 truncate">
-                              {session.user?.email}
-                            </p>
-                          </div>
-                        </div>
+                    <div className="absolute right-0 mt-2 w-64 bg-surface-container-lowest rounded-2xl shadow-xl border border-outline-variant/30 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="px-4 py-3 border-b border-outline-variant/20">
+                        <p className="text-sm font-semibold text-on-surface truncate">
+                          {session.user?.name || 'User'}
+                        </p>
+                        <p className="text-xs text-on-surface-variant truncate mt-0.5">
+                          {session.user?.email}
+                        </p>
+                      </div>
+
+                      <div className="py-1">
                         <Link
                           href="/profile"
                           onClick={() => setShowProfileMenu(false)}
-                          className="mt-3 block w-full text-center py-1.5 text-sm font-semibold text-primary-600 border border-primary-600 rounded-full hover:bg-primary-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container-low transition-colors"
                         >
-                          View Profile
+                          <User className="w-4 h-4 text-outline" />
+                          <span>View Profile</span>
                         </Link>
-                      </div>
-
-                      {/* Menu Items */}
-                      <div className="py-1">
+                        <Link
+                          href="/my-skills"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container-low transition-colors"
+                        >
+                          <BookOpen className="w-4 h-4 text-outline" />
+                          <span>My Skills</span>
+                        </Link>
                         <Link
                           href="/dashboard"
                           onClick={() => setShowProfileMenu(false)}
-                          className="flex items-center space-x-3 px-4 py-2.5 text-sm text-secondary-600 hover:bg-secondary-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container-low transition-colors"
                         >
-                          <LayoutDashboard className="w-4 h-4" />
+                          <LayoutDashboard className="w-4 h-4 text-outline" />
                           <span>Dashboard</span>
                         </Link>
                         <Link
-                          href="/profile"
+                          href="/exchanges"
                           onClick={() => setShowProfileMenu(false)}
-                          className="flex items-center space-x-3 px-4 py-2.5 text-sm text-secondary-600 hover:bg-secondary-50 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container-low transition-colors"
                         >
-                          <Settings className="w-4 h-4" />
-                          <span>Settings & Privacy</span>
+                          <Briefcase className="w-4 h-4 text-outline" />
+                          <span>Exchanges</span>
                         </Link>
                       </div>
 
-                      <div className="border-t border-secondary-200/60 pt-1">
+                      <div className="border-t border-outline-variant/20 pt-1 mt-1">
                         <button
-                          onClick={() => {
-                            setShowProfileMenu(false);
-                            signOut();
-                          }}
-                          className="flex items-center space-x-3 w-full px-4 py-2.5 text-sm text-secondary-600 hover:bg-secondary-50 transition-colors"
+                          onClick={() => signOut({ callbackUrl: '/' })}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors text-left"
                         >
-                          <LogOut className="w-4 h-4" />
+                          <LogOut className="w-4 h-4 text-error" />
                           <span>Sign Out</span>
                         </button>
                       </div>
@@ -194,23 +212,25 @@ function NavbarComponent() {
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => signIn()}
-                  className="btn-ghost text-sm font-semibold"
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/auth/signin"
+                  className="px-4 py-2 text-sm font-medium text-on-surface hover:text-primary transition-colors"
                 >
                   Sign In
-                </button>
-                <Link href="/auth/signup" className="btn-outline text-sm py-2 px-4">
-                  Join Now
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  className="bg-primary hover:bg-primary-container text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition-all active:scale-95"
+                >
+                  Get Started
                 </Link>
               </div>
             )}
           </div>
         </div>
       </div>
-    </nav>
+    </header>
   );
 }
-
-export const Navbar = memo(NavbarComponent);
+export default Navbar;

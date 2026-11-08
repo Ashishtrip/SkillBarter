@@ -8,12 +8,11 @@ import {
   Filter, 
   Plus, 
   Users, 
-  Calendar, 
   MessageSquare, 
-  Star,
-  Tag,
-  Globe,
-  Lock
+  Globe, 
+  Lock,
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import { Group, SkillCategory } from '@/types';
 
@@ -88,7 +87,6 @@ export default function GroupsPage() {
       });
 
       if (response.ok) {
-        // Refresh groups list
         fetchGroups();
       } else {
         const data = await response.json();
@@ -107,7 +105,6 @@ export default function GroupsPage() {
       });
 
       if (response.ok) {
-        // Refresh groups list
         fetchGroups();
       } else {
         const data = await response.json();
@@ -125,188 +122,233 @@ export default function GroupsPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 bg-primary-600 rounded-full animate-pulse" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-secondary text-sm font-medium">Loading communities...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-secondary-900 mb-2">Groups & Communities</h1>
-        <p className="text-secondary-600">Join groups to connect with like-minded learners and teachers</p>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-secondary-200 p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-secondary-400" />
+    <div className="min-h-screen bg-background text-on-background py-8">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                <Sparkles className="w-3.5 h-3.5" />
+                Special Interest Hubs
+              </span>
             </div>
-            <input
-              type="text"
-              placeholder="Search groups..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="input-field pl-10 w-full"
-            />
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-on-surface tracking-tight">
+              Exchange Communities
+            </h1>
+            <p className="text-secondary text-sm sm:text-base mt-1">
+              Join focused cohorts and trade insights with peers in your discipline.
+            </p>
           </div>
+
           <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="btn-outline flex items-center space-x-2"
+            onClick={() => alert('Group creation will open shortly!')}
+            className="btn-primary flex items-center gap-2 self-start md:self-auto shadow-sm"
           >
-            <Filter className="w-4 h-4" />
-            <span>Filters</span>
-          </button>
-          <button
-            onClick={handleSearch}
-            className="btn-primary px-8"
-          >
-            Search
+            <Plus className="w-4 h-4" />
+            <span>Create Community</span>
           </button>
         </div>
 
-        {/* Filters */}
-        {showFilters && (
-          <div className="mt-6 pt-6 border-t border-secondary-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-secondary-700 mb-2">
-                  Category
-                </label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value as SkillCategory | '')}
-                  className="input-field"
-                >
-                  <option value="">All Categories</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </option>
-                  ))}
-                </select>
+        {/* Search & Filter Toolbar */}
+        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-4 sm:p-5 shadow-sm space-y-4">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex-1 relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-secondary/60" />
               </div>
+              <input
+                type="text"
+                placeholder="Search by topic, discipline, or keywords..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-outline-variant/40 bg-surface-container-lowest focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm outline-none transition-all"
+              />
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Groups Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {groups.map((group) => (
-          <div key={group._id} className="card hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-primary-600" />
-                </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-outline-variant/40 hover:bg-surface-container text-xs font-semibold text-on-surface transition-all"
+            >
+              <Filter className="w-4 h-4 text-secondary" />
+              <span>{showFilters ? 'Hide Categories' : 'Filter by Domain'}</span>
+            </button>
+
+            <button
+              onClick={handleSearch}
+              className="btn-primary text-xs px-6 py-2.5"
+            >
+              Search
+            </button>
+          </div>
+
+          {/* Collapsible Filter Pills */}
+          {showFilters && (
+            <div className="pt-3 border-t border-outline-variant/20 flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedCategory('')}
+                className={`text-xs font-medium px-3 py-1.5 rounded-full transition-all ${
+                  selectedCategory === '' 
+                    ? 'bg-primary text-white font-semibold' 
+                    : 'bg-surface-container text-secondary hover:text-on-surface'
+                }`}
+              >
+                All Categories
+              </button>
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-full capitalize transition-all ${
+                    selectedCategory === category 
+                      ? 'bg-primary text-white font-semibold' 
+                      : 'bg-surface-container text-secondary hover:text-on-surface'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Groups Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {groups.map((group) => {
+            const memberActive = isMember(group);
+            return (
+              <div 
+                key={group._id} 
+                className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-sm p-6 flex flex-col justify-between hover:-translate-y-[1px] hover:shadow-md transition-all duration-200"
+              >
                 <div>
-                  <h3 className="font-semibold text-secondary-900">{group.name}</h3>
-                  <div className="flex items-center space-x-2 text-sm text-secondary-600">
-                    {group.isPublic ? (
-                      <Globe className="w-3 h-3" />
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Users className="w-6 h-6" />
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-secondary font-medium px-2.5 py-1 rounded-full bg-surface-container">
+                      {group.isPublic ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+                      <span className="capitalize">{group.category || 'General'}</span>
+                    </div>
+                  </div>
+
+                  <h3 className="font-display font-bold text-lg text-on-surface hover:text-primary transition-colors cursor-pointer">
+                    {group.name}
+                  </h3>
+
+                  <p className="text-secondary text-xs sm:text-sm line-clamp-3 mt-2 mb-4 leading-relaxed">
+                    {group.description || 'A community of practitioners collaborating on exchanges and peer skill sharing.'}
+                  </p>
+
+                  {group.tags && group.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-5">
+                      {group.tags.slice(0, 3).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="font-mono text-[11px] px-2.5 py-0.5 bg-primary/5 text-primary-fixed-variant rounded-md border border-primary/10"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-xs text-secondary py-3 border-t border-outline-variant/20 mb-4">
+                    <div className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-secondary/70" />
+                      <span>{group.members?.length || 1} members</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <MessageSquare className="w-3.5 h-3.5 text-secondary/70" />
+                      <span>{group.posts?.length || 0} discussions</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {memberActive ? (
+                      <button
+                        onClick={() => leaveGroup(group._id)}
+                        className="flex-1 btn-outline text-xs py-2 hover:border-error hover:text-error transition-colors"
+                      >
+                        Leave Group
+                      </button>
                     ) : (
-                      <Lock className="w-3 h-3" />
+                      <button
+                        onClick={() => joinGroup(group._id)}
+                        className="flex-1 btn-primary text-xs py-2"
+                      >
+                        Join Cohort
+                      </button>
                     )}
-                    <span>{group.category}</span>
+                    <button 
+                      onClick={() => alert(`Opening group "${group.name}" details...`)}
+                      className="px-3 py-2 rounded-xl border border-outline-variant/40 hover:bg-surface-container text-xs font-semibold text-secondary transition-colors"
+                      title="View Details"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
+
               </div>
-            </div>
+            );
+          })}
+        </div>
 
-            <p className="text-sm text-secondary-600 mb-4 line-clamp-3">
-              {group.description}
-            </p>
-
-            {group.tags && group.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-4">
-                {group.tags.slice(0, 3).map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {group.tags.length > 3 && (
-                  <span className="px-2 py-1 bg-secondary-100 text-secondary-600 text-xs rounded-full">
-                    +{group.tags.length - 3}
-                  </span>
-                )}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between text-sm text-secondary-600 mb-4">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-1">
-                  <Users className="w-4 h-4" />
-                  <span>{group.members?.length || 0} members</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>{group.posts?.length || 0} posts</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex space-x-2">
-              {isMember(group) ? (
-                <button
-                  onClick={() => leaveGroup(group._id)}
-                  className="flex-1 btn-outline text-sm py-2"
-                >
-                  Leave Group
-                </button>
-              ) : (
-                <button
-                  onClick={() => joinGroup(group._id)}
-                  className="flex-1 btn-primary text-sm py-2"
-                >
-                  Join Group
-                </button>
-              )}
-              <button className="btn-outline text-sm py-2 px-3">
-                View Details
-              </button>
-            </div>
+        {groups.length === 0 && !isLoading && (
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/30 p-12 text-center max-w-lg mx-auto">
+            <Users className="w-12 h-12 text-secondary/30 mx-auto mb-3" />
+            <h3 className="font-display font-bold text-lg text-on-surface">No communities found</h3>
+            <p className="text-secondary text-sm mt-1 mb-6">Try broadening your search term or select another category filter.</p>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCategory('');
+              }}
+              className="btn-outline text-xs px-4 py-2"
+            >
+              Reset Filters
+            </button>
           </div>
-        ))}
-      </div>
+        )}
 
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="flex justify-center mt-8">
-          <div className="flex space-x-2">
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="flex justify-center items-center gap-3 pt-4">
             <button
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
               disabled={pagination.page === 1}
-              className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-outline text-xs px-3 py-2 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            <span className="flex items-center px-4 py-2 text-sm text-secondary-600">
+            <span className="text-xs text-secondary font-medium">
               Page {pagination.page} of {pagination.pages}
             </span>
             <button
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
               disabled={pagination.page === pagination.pages}
-              className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-outline text-xs px-3 py-2 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Next
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Create Group Button */}
-      <div className="fixed bottom-6 right-6">
-        <button className="btn-primary rounded-full p-4 shadow-lg hover:shadow-xl transition-shadow">
-          <Plus className="w-6 h-6" />
-        </button>
       </div>
     </div>
   );

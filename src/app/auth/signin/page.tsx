@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { ChevronRight, Zap } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
@@ -13,32 +12,16 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [urlError, setUrlError] = useState('');
-  const [providerError, setProviderError] = useState('');
   const router = useRouter();
 
-  // Show error from URL params (NextAuth may redirect back with ?error=...)
-  // Move to useEffect to avoid hydration mismatch
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const errorParam = params.get('error') || '';
-    setUrlError(errorParam);
+    const errorParam = params.get('error');
+    if (errorParam) {
+      setError('Authentication error. Please check your credentials or try again.');
+    }
   }, []);
 
-  function mapAuthError(code: string | null | undefined) {
-    if (!code) return '';
-    const map: Record<string, string> = {
-      CredentialsSignin: 'Invalid email or password.',
-      OAuthSignin: 'Error signing in with the provider. Please try again.',
-      OAuthCallback: 'Provider callback error. Please try again.',
-      OAuthCreateAccount: 'Could not create account from provider data.',
-      EmailCreateAccount: 'Could not create account with that email.',
-      Callback: 'Authentication callback error. Please try again.',
-      OAuthAccountNotLinked: 'An account with this email already exists. Try signing in with your original method.',
-      RateLimited: 'Too many attempts. Please try again later.',
-    };
-    return map[code] || code;
-  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -52,187 +35,213 @@ export default function SignIn() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        setError('Invalid email or password. Please try again.');
       } else {
-        router.push('/profile');
+        router.push('/dashboard');
       }
-    } catch (error) {
+    } catch (err) {
       setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleOAuthSignIn = (provider: 'google' | 'github') => {
+    signIn(provider, { callbackUrl: '/dashboard' });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 bg-primary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">S</span>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-secondary-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-secondary-600">
-            Or{' '}
-            <Link href="/auth/signup" className="font-medium text-primary-600 hover:text-primary-500">
-              create a new account
-            </Link>
-          </p>
+    <div className="min-h-screen flex flex-col md:flex-row bg-surface">
+      {/* ─── Left Side: Brand Identity & Cinematic Atmosphere (Stitch Style) ─── */}
+      <section className="hidden md:flex relative w-full md:w-1/2 min-h-screen bg-inverse-surface flex-col justify-between p-12 lg:p-16 text-white overflow-hidden">
+        {/* Subtle radial glow & grid background */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Top Logo */}
+        <div className="relative z-10">
+          <Link href="/" className="inline-flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary-fixed-dim text-inverse-surface font-bold flex items-center justify-center text-sm shadow">
+              SB
+            </div>
+            <span className="font-display text-xl font-bold tracking-tight text-white">
+              SkillBarter
+            </span>
+          </Link>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-              {error}
+
+        {/* Center Editorial Quote */}
+        <div className="relative z-10 max-w-lg space-y-6">
+          <p className="font-display text-3xl lg:text-4xl font-bold leading-tight text-surface-bright">
+            Join a global network of professionals{' '}
+            <span className="text-primary-fixed-dim">trading mastery for mastery.</span>
+          </p>
+          <div className="w-20 h-1 bg-primary-fixed-dim rounded-full" />
+
+          <div className="pt-6 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/40 shadow-lg bg-surface-container-high flex items-center justify-center font-bold text-inverse-surface text-base">
+              SC
             </div>
-          )}
-          
-          <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-secondary-700">
-                Email address
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-secondary-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-field pl-10"
-                  placeholder="Enter your email"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-secondary-700">
-                Password
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-secondary-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input-field pl-10 pr-10"
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-secondary-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-secondary-400" />
-                  )}
-                </button>
-              </div>
+              <p className="text-xs text-surface-variant italic max-w-xs">
+                "The most valuable currency I've found isn't capital, it's specific expertise shared through mutual reciprocity."
+              </p>
+              <span className="text-[11px] font-mono font-semibold text-primary-fixed uppercase tracking-wider block mt-1">
+                Sarah Chen · Senior Product Architect
+              </span>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center justify-between">
-            <Link
-              href="/auth/forgot-password"
-              className="text-sm text-primary-600 hover:text-primary-700"
-            >
-              Forgot password?
-            </Link>
+        {/* Bottom copyright */}
+        <div className="relative z-10 text-xs text-outline-variant">
+          © {new Date().getFullYear()} SkillBarter. Professional Reciprocity.
+        </div>
+      </section>
+
+      {/* ─── Right Side: Authentication Form (Stitch Style) ─── */}
+      <section className="flex-1 flex flex-col justify-center items-center px-6 md:px-12 py-12 bg-surface">
+        <div className="w-full max-w-md space-y-6">
+          {/* Mobile Header Logo */}
+          <div className="md:hidden flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-lg bg-primary text-white font-bold flex items-center justify-center text-xs">
+              SB
+            </div>
+            <span className="font-display text-lg font-bold text-primary">SkillBarter</span>
           </div>
 
-          <div>
+          {/* Tab Switcher (Login / Create Account) */}
+          <div className="bg-surface-container rounded-xl p-1 flex">
             <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full btn-primary py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2 rounded-lg font-semibold text-xs shadow-sm bg-surface-container-lowest text-primary transition-all"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              Sign In
+            </button>
+            <button
+              onClick={() => router.push('/auth/signup')}
+              className="flex-1 py-2 rounded-lg font-semibold text-xs text-on-surface-variant hover:text-on-surface transition-all"
+            >
+              Create Account
             </button>
           </div>
-        </form>
 
-        <div className="mt-4">
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-secondary-200" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-secondary-500">Or continue with</span>
-            </div>
+          {/* Header text */}
+          <div>
+            <h2 className="font-display text-2xl font-bold text-on-surface tracking-tight">
+              Welcome back
+            </h2>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Access your skill exchange workspace & discussions
+            </p>
           </div>
 
+          {/* Social Logins */}
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={async () => {
-                setIsLoading(true);
-                setProviderError('');
-                const res = await signIn('google', { redirect: false, callbackUrl: '/profile' });
-                if (res?.error) {
-                  setProviderError(mapAuthError(res.error));
-                  setIsLoading(false);
-                }
-                // if no error and url present, NextAuth will handle redirect
-              }}
-              className="flex items-center justify-center space-x-2 border border-secondary-200 rounded-lg py-2 hover:bg-secondary-50 transition-colors"
+              onClick={() => handleOAuthSignIn('google')}
+              className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-lowest border border-outline-variant/60 rounded-xl text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-all active:scale-95 shadow-sm"
             >
-              {/* Official Google Logo */}
-              <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_logo.svg/512px-Google_%22G%22_logo.svg.png" 
-                alt="Google" 
-                className="h-5 w-5" 
-              />
-              <span className="text-sm font-medium">Google</span>
+              <span>Google</span>
             </button>
-
             <button
               type="button"
-              onClick={async () => {
-                setIsLoading(true);
-                setProviderError('');
-                const res = await signIn('apple', { redirect: false, callbackUrl: '/profile' });
-                if (res?.error) {
-                  setProviderError(mapAuthError(res.error));
-                  setIsLoading(false);
-                }
-              }}
-              className="flex items-center justify-center space-x-2 border border-secondary-200 rounded-lg py-2 hover:bg-secondary-50 transition-colors"
+              onClick={() => handleOAuthSignIn('github')}
+              className="flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-container-lowest border border-outline-variant/60 rounded-xl text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-all active:scale-95 shadow-sm"
             >
-              {/* Official Apple Logo */}
-              <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/512px-Apple_logo_black.svg.png" 
-                alt="Apple" 
-                className="h-5 w-5" 
-              />
-              <span className="text-sm font-medium">Apple</span>
+              <span>GitHub</span>
             </button>
           </div>
-          {providerError && (
-            <div className="mt-3 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-2 rounded-lg">
-              {providerError}
+
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-outline-variant/30" />
+            <span className="text-[11px] font-mono text-outline uppercase tracking-wider">
+              or email
+            </span>
+            <div className="flex-1 h-px bg-outline-variant/30" />
+          </div>
+
+          {error && (
+            <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-xl text-xs font-medium">
+              {error}
             </div>
           )}
-          {urlError && (
-            <div className="mt-3 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg">
-              {mapAuthError(urlError)}
+
+          {/* Main Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-on-surface-variant block mb-1.5 ml-0.5">
+                Email address
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-outline absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  required
+                  className="input-field pl-10"
+                />
+              </div>
             </div>
-          )}
+
+            <div>
+              <div className="flex justify-between items-center mb-1.5 ml-0.5">
+                <label className="text-xs font-semibold text-on-surface-variant">
+                  Password
+                </label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-[11px] font-semibold text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-outline absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="input-field pl-10 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-primary hover:bg-primary-container text-white font-semibold text-xs rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] mt-2 flex items-center justify-center gap-2"
+            >
+              <span>{isLoading ? 'Signing In...' : 'Log in to SkillBarter'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </form>
+
+          <p className="text-center text-[11px] text-outline px-4">
+            By continuing, you agree to our{' '}
+            <Link href="/" className="underline text-on-surface hover:text-primary">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link href="/" className="underline text-on-surface hover:text-primary">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

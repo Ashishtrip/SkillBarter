@@ -1,66 +1,87 @@
-import { UserPlus, Search, ArrowRightLeft } from 'lucide-react';
+'use client';
+
+import React from 'react';
+import { UserCheck, Search, Repeat, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export function HowItWorks() {
   const steps = [
     {
       number: '01',
-      icon: UserPlus,
-      title: 'Create Your Profile',
-      description: 'Sign up and tell us about the skills you can teach and what you want to learn.',
+      icon: UserCheck,
+      title: 'List Your Offerings',
+      description:
+        'Specify your core domain strengths, past portfolio deliverables, and the target skills you need in return.',
     },
     {
       number: '02',
       icon: Search,
-      title: 'Find & Connect',
-      description: 'Search for people with complementary skills and start a conversation.',
+      title: 'Discover & Match',
+      description:
+        'Browse vetted creator and engineer profiles with matching skill overlap scores and confirmed availability.',
     },
     {
       number: '03',
-      icon: ArrowRightLeft,
-      title: 'Exchange Skills',
-      description: 'Arrange skill swaps, track your progress, and build lasting connections.',
+      icon: Repeat,
+      title: 'Execute & Elevate',
+      description:
+        'Establish milestones in an integrated workspace, exchange work with mutual feedback, and expand your network.',
     },
   ];
 
   return (
-    <section className="section-card">
-      <div className="px-6 sm:px-10 py-10 sm:py-14">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-heading font-bold text-secondary-900 mb-3">
-            How It Works
+    <section className="py-12 border-t border-outline-variant/30">
+      <div className="bg-surface-container-lowest rounded-3xl p-8 sm:p-12 border border-outline-variant/30 shadow-card">
+        <div className="text-center max-w-xl mx-auto mb-12">
+          <span className="text-xs font-mono font-bold uppercase tracking-widest text-primary mb-2 block">
+            The Reciprocity Model
+          </span>
+          <h2 className="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight mb-3">
+            How Kinetic Barter Operates
           </h2>
-          <p className="text-secondary-500 max-w-lg mx-auto">
-            Getting started is simple. Follow these three easy steps.
+          <p className="text-body-md text-on-surface-variant">
+            From initial proposal to finished milestone in three structured phases.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
-          {/* Connector line (desktop only) */}
-          <div className="hidden md:block absolute top-12 left-[20%] right-[20%] h-[2px] bg-secondary-200" />
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (
-              <div key={index} className="text-center relative">
-                <div className="relative inline-block mb-5">
-                  <div className="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg relative z-10 rotate-3 hover:rotate-0 transition-transform duration-300">
-                    <Icon className="w-7 h-7 text-white" />
+              <div key={index} className="flex flex-col items-center text-center relative group">
+                <div className="relative mb-6">
+                  <div className="w-16 h-16 rounded-2xl bg-surface-container-low border border-outline-variant/40 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                    <Icon className="w-7 h-7" />
                   </div>
-                  <div className="absolute -top-1.5 -right-1.5 w-7 h-7 bg-accent-500 rounded-full flex items-center justify-center z-20 shadow-sm">
-                    <span className="text-[11px] font-heading font-bold text-white">{step.number}</span>
-                  </div>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-white text-[11px] font-mono font-bold flex items-center justify-center shadow">
+                    {step.number}
+                  </span>
                 </div>
-                <h3 className="text-base font-heading font-semibold text-secondary-900 mb-2">
+                <h3 className="text-lg font-bold text-on-surface mb-2 font-display">
                   {step.title}
                 </h3>
-                <p className="text-sm text-secondary-500 leading-relaxed max-w-[260px] mx-auto">
+                <p className="text-sm text-on-surface-variant leading-relaxed max-w-xs">
                   {step.description}
                 </p>
               </div>
             );
           })}
         </div>
+
+        <div className="mt-12 pt-8 border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h4 className="text-base font-bold text-on-surface">Ready to trade expertise?</h4>
+            <p className="text-xs text-on-surface-variant">Join hundreds of engineers, designers, and founders today.</p>
+          </div>
+          <Link
+            href="/auth/signup"
+            className="btn-primary"
+          >
+            Create Your Profile <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
     </section>
   );
 }
+export default HowItWorks;

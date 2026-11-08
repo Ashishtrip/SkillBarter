@@ -1,74 +1,74 @@
-import { Search, User, MessageCircle, BarChart3, Shield, Heart } from 'lucide-react';
+'use client';
+
+import React from 'react';
+import { Search, ShieldCheck, Milestone, MessageSquare, Zap, Trophy } from 'lucide-react';
 
 export function Features() {
   const features = [
     {
       icon: Search,
-      title: 'Smart Search',
-      description: 'Find the perfect skill exchange partner with advanced filtering by category, level, and location.',
-      color: 'text-primary-600',
-      bg: 'bg-primary-50',
+      title: 'Precision Skill Matching',
+      description:
+        'Smart algorithmic matchmaking aligns your exact offerings with complementary collaborator demands and overlapping availability.',
     },
     {
-      icon: User,
-      title: 'Rich Profiles',
-      description: 'LinkedIn-style profiles showcasing your skills, education, work experience, and certifications.',
-      color: 'text-accent-500',
-      bg: 'bg-accent-50',
+      icon: Milestone,
+      title: 'Milestone-Driven Projects',
+      description:
+        'Structure agreements into verifiable milestones with explicit deliverables, ensuring balanced reciprocity for both parties.',
     },
     {
-      icon: MessageCircle,
-      title: 'Real-time Chat',
-      description: 'Connect and coordinate through built-in messaging with video call integration.',
-      color: 'text-success-500',
-      bg: 'bg-success-50',
+      icon: ShieldCheck,
+      title: 'Verified Competence',
+      description:
+        'Peer-reviewed portfolios, GitHub and LinkedIn links, and authentic reviews from real exchanges guarantee quality and accountability.',
     },
     {
-      icon: BarChart3,
-      title: 'Track Progress',
-      description: 'Dashboard insights to monitor your exchanges, learning streak, and skill growth.',
-      color: 'text-warning-600',
-      bg: 'bg-warning-50',
+      icon: MessageSquare,
+      title: 'Built-in Collaboration Hub',
+      description:
+        'Discuss specifications, share files, and initiate live video syncs directly in a focused discussion space.',
     },
     {
-      icon: Shield,
-      title: 'Safe & Verified',
-      description: 'Identity verification, ratings, and reports keep the community trustworthy.',
-      color: 'text-error-500',
-      bg: 'bg-error-50',
+      icon: Zap,
+      title: 'Zero Financial Friction',
+      description:
+        'Never let runway restrict growth. Build products, launch brands, and learn mastery entirely through mutual talent exchange.',
     },
     {
-      icon: Heart,
-      title: 'Community First',
-      description: 'Reddit-style groups, events, and discussions. Built for collaboration, not transactions.',
-      color: 'text-pink-500',
-      bg: 'bg-pink-50',
+      icon: Trophy,
+      title: 'Reputation & Growth Network',
+      description:
+        'Accumulate verifiable barter credentials and build a long-term network of elite founders, designers, and engineers.',
     },
   ];
 
   return (
-    <section>
-      <div className="text-center mb-10">
-        <h2 className="text-2xl sm:text-3xl font-heading font-bold text-secondary-900 mb-3">
-          Everything You Need to Exchange Skills
+    <section className="py-12 border-t border-outline-variant/30">
+      <div className="text-center max-w-2xl mx-auto mb-12">
+        <h2 className="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight mb-3">
+          Built for High-Trust Collaboration
         </h2>
-        <p className="text-secondary-500 max-w-lg mx-auto">
-          Our platform is designed to make skill sharing simple, safe, and rewarding.
+        <p className="text-body-md text-on-surface-variant">
+          Every tool you need to trade skills with confidence, transparency, and structure.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {features.map((feature, index) => {
           const Icon = feature.icon;
           return (
-            <div key={index} className="card group">
-              <div className={`w-11 h-11 ${feature.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
-                <Icon className={`w-5 h-5 ${feature.color}`} />
+            <div
+              key={index}
+              className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/30 shadow-card hover:shadow-card-hover transition-all group"
+            >
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-5 text-primary group-hover:scale-105 group-hover:bg-primary group-hover:text-white transition-all">
+                <Icon className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-heading font-semibold text-secondary-900 mb-2">
+              <h3 className="text-lg font-bold text-on-surface mb-2 font-display">
                 {feature.title}
               </h3>
-              <p className="text-sm text-secondary-500 leading-relaxed">
+              <p className="text-sm text-on-surface-variant leading-relaxed">
                 {feature.description}
               </p>
             </div>
@@ -78,3 +78,4 @@ export function Features() {
     </section>
   );
 }
+export default Features;

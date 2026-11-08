@@ -3,7 +3,7 @@ import { authOptions } from '@/lib/auth';
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions as any);
+    const session = await getServerSession(authOptions as any) as any;
     if (!session?.user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }

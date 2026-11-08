@@ -6,6 +6,7 @@ export interface IUser {
   password?: string;
   bio?: string;
   location?: string;
+  availability?: string;
   avatar?: string;
   identityVerified?: boolean;
   identityVerificationMethod?: 'manual' | 'social';
@@ -62,15 +63,16 @@ export interface IUser {
     currentlyWorking?: boolean;
     createdAt?: Date;
   }>;
-  credit: {
-    type: Number,
-    default: 0,
-  },
+  credit?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 const UserSchema = new Schema<IUser>({
+  credit: {
+    type: Number,
+    default: 0,
+  },
   email: {
     type: String,
     required: true,
@@ -92,6 +94,10 @@ const UserSchema = new Schema<IUser>({
     maxlength: 500,
   },
   location: {
+    type: String,
+    trim: true,
+  },
+  availability: {
     type: String,
     trim: true,
   },

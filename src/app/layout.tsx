@@ -2,15 +2,15 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 import Header from '@/components/Header';
-import { Sidebar } from '@/components/Sidebar';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 export const metadata: Metadata = {
-  title: 'SkillBarter - Exchange Skills, Grow Together',
-  description: 'A platform where people can barter skills with each other. Teach what you know, learn what you need.',
+  title: 'SkillBarter - Professional Reciprocity & Skill Exchange',
+  description:
+    'Exchange high-value professional skills directly. Build your portfolio, collaborate with experts, and grow your career without spending money.',
 };
 
 export default async function RootLayout({
@@ -26,24 +26,17 @@ export default async function RootLayout({
   }
   return (
     <html lang="en">
-      <body className="font-body antialiased">
+      <body className="bg-surface text-on-surface antialiased min-h-screen flex flex-col font-sans">
         <ErrorBoundary>
           <Providers session={session}>
-            <div className="min-h-screen bg-secondary-50">
-              {/* Header - visible on all devices */}
+            <div className="min-h-screen flex flex-col bg-surface text-on-surface">
+              {/* Top Navigation */}
               <Header />
 
-              {/* Sidebar - visible on desktop only */}
-              <Sidebar />
+              {/* Main Page Content */}
+              <main className="flex-grow w-full pb-20 lg:pb-0">{children}</main>
 
-              {/* Main content area */}
-              <main className="lg:ml-64 min-h-screen transition-all duration-300">
-                <div className="max-w-[1128px] mx-auto px-4 py-6 pb-24 lg:pb-6">
-                  {children}
-                </div>
-              </main>
-
-              {/* Mobile bottom nav - visible on mobile only */}
+              {/* Mobile Bottom Navigation */}
               <MobileBottomNav />
             </div>
           </Providers>

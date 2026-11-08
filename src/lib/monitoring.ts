@@ -86,7 +86,7 @@ export function trackPerformance(metricName: string, duration: number, metadata?
     // Track performance metrics
     Sentry.metrics.distribution(metricName, duration, {
       tags: metadata,
-    });
+    } as any);
     console.log(`Performance: ${metricName} took ${duration}ms`, metadata);
   }
 }
