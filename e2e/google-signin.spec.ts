@@ -10,11 +10,9 @@ dotenv.config({ path: '.env.local' });
 const EMAIL = process.env.APP_OAUTH_TEST_EMAIL;
 const PASSWORD = process.env.APP_OAUTH_TEST_PASSWORD;
 
-if (!EMAIL || !PASSWORD) {
-  throw new Error('Set APP_OAUTH_TEST_EMAIL and APP_OAUTH_TEST_PASSWORD in the environment');
-}
-
 test('Google sign-in end-to-end', async ({ page }) => {
+  test.skip(!EMAIL || !PASSWORD, 'APP_OAUTH_TEST_EMAIL and APP_OAUTH_TEST_PASSWORD not provided');
+
   // Go to sign-in page
   await page.goto('/auth/signin');
 

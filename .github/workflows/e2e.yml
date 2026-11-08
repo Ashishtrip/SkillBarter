@@ -45,6 +45,10 @@ jobs:
 
       - name: Build Next app
         run: npm run build
+        env:
+          MONGODB_URI: mongodb://localhost:27017/test
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: test-secret
 
       - name: Start Next server
         run: |
@@ -56,24 +60,38 @@ jobs:
             fi
             echo "waiting for server..."; sleep 1;
           done
+          if ! curl -sS http://localhost:3000/ >/dev/null; then
+            echo "Server failed to start! Log:"
+            cat next-start.log
+            exit 1
+          fi
+        env:
+          MONGODB_URI: mongodb://localhost:27017/test
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: test-secret
+          PORT: 3000
 
       - name: Run Playwright tests
         run: npx playwright test --config=playwright.config.ts --project=${{ matrix.browser }} --reporter=html
 
       - name: Upload Playwright HTML report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}
           path: playwright-report
 
   aggregate-reports:
     needs: e2e
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: reports
+          pattern: playwright-report-*
+          merge-multiple: true
 
       - name: Aggregate reports
         run: |
